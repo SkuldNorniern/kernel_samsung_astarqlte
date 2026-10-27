@@ -9152,7 +9152,7 @@ static int bt532_ts_probe(struct i2c_client *client,
 	int ret = 0;
 	int i;
 	bool force_update = false;
-#ifndef CONFIG_EXYNOS_DECON_MDNIE_LITE
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG) || defined(CONFIG_EXYNOS_DECON_MDNIE_LITE)
 	int lcdtype = 0;
 #endif
 
