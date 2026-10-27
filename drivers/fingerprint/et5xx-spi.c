@@ -971,6 +971,8 @@ static ssize_t etspi_bfs_values_show(struct device *dev,
 {
 	struct etspi_data *data = dev_get_drvdata(dev);
 
+	if (!data->spi)
+		return -ENODEV;
 	return snprintf(buf, PAGE_SIZE, "\"FP_SPICLK\":\"%d\"\n",
 			data->spi->max_speed_hz);
 }
@@ -1004,7 +1006,10 @@ static ssize_t etspi_vendor_show(struct device *dev,
 static ssize_t etspi_name_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", g_data->chipid);
+	struct etspi_data *data = dev_get_drvdata(dev);
+
+	return snprintf(buf, PAGE_SIZE, "%s\n",
+			data->chipid ? data->chipid : "");
 }
 
 static ssize_t etspi_adm_show(struct device *dev,
