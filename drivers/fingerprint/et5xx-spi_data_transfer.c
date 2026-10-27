@@ -647,12 +647,7 @@ int etspi_nvm_read(struct etspi_data *etspi, struct egis_ioc_transfer *ioc)
 		return status;
 	}
 
-	if (memcpy((u8 __user *) (uintptr_t) ioc->rx_buf, xfer.rx_buf + 3,
-			ioc->len)) {
-		pr_err("%s buffer copy_to_user fail status\n", __func__);
-		status = -EFAULT;
-		return status;
-	}
+	memcpy((u8 *) (uintptr_t) ioc->rx_buf, xfer.rx_buf + 3, ioc->len);
 
 	return status;
 #endif
@@ -711,7 +706,12 @@ int etspi_io_nvm_writeex(struct etspi_data *etspi,
 		}
 		pr_debug("%s fixed address alignment issue. %d %d\n",
 				__func__, r.tx_buf[0], r.len);
-		etspi_nvm_read(etspi, &r);
+		status = etspi_nvm_read(etspi, &r);
+		if (status < 0) {
+			pr_err("%s nvm alignment read failed %d\n", __func__,
+				status);
+			return status;
+		}
 
 		tmp = bufr;
 		if (buf[0] % 2)
