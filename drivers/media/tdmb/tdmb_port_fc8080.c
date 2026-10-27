@@ -74,6 +74,11 @@ static bool __get_ensemble_info(struct ensemble_info_type *e_info
 
 	DPRINTK("%s : freq(%ld)\n", __func__, freq);
 
+	if (dmb_drv_get_dmb_sub_ch_cnt() + dmb_drv_get_dab_sub_ch_cnt()
+			> SUB_CH_NUM_MAX) {
+		DPRINTK("%s: too many sub channels\n", __func__);
+		return false;
+	}
 	e_info->tot_sub_ch
 		= dmb_drv_get_dmb_sub_ch_cnt() + dmb_drv_get_dab_sub_ch_cnt();
 	DPRINTK("total subchannel number : %d\n", e_info->tot_sub_ch);
