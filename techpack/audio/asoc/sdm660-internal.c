@@ -2230,6 +2230,19 @@ static struct snd_soc_dai_link msm_int_dai[] = {
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 	},
+#ifdef CONFIG_SEC_SND_ADAPTATION
+	{/* hw:x,40 */
+		.name = "ADAPTATION Hostless",
+		.stream_name = "ADAPTATION Hostless",
+		.cpu_dai_name = "snd-soc-dummy-dai",
+		.platform_name = "q6audio-adaptation",
+		.no_pcm = 1,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+#endif /* CONFIG_SEC_SND_ADAPTATION */
 };
 
 
