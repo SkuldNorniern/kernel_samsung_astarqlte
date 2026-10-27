@@ -18,6 +18,16 @@
 	(!((fw_main[0] == 0xff) && (fw_main[1] == 0xff)) \
  	&& !((fw_main[0] == 0x00) && (fw_main[1] == 0x00)))
 
+static bool s2mm005_fw_write_allowed(void)
+{
+	if (IS_ENABLED(CONFIG_CCIC_S2MM005_ALLOW_FW_WRITE))
+		return true;
+
+	pr_warn_once("%s: s2mm005 flash write blocked (CCIC_S2MM005_ALLOW_FW_WRITE is off)\n",
+		     __func__);
+	return false;
+}
+
 const char *flashmode_to_string(u32 mode)
 {
 	switch (mode) {
@@ -309,6 +319,9 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 	int irq_gpio_status;
 	FLASH_STATE_Type Flash_DATA;
 
+	if (!s2mm005_fw_write_allowed())
+		return -EPERM;
+
 	switch (input) {
 	case FLASH_MODE_ENTER: { /* enter flash mode */
 		/* FLASH_READY */
@@ -511,6 +524,9 @@ int s2mm005_flash_fw(struct s2mm005_data *usbpd_data, unsigned int input)
 {
 	int ret = 0;
 	u8 val = 0;
+
+	if (!s2mm005_fw_write_allowed())
+		return -EPERM;
 
 	if( usbpd_data->fw_product_id != usbpd_data->s2mm005_fw_product_id)
 	{

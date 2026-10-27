@@ -936,7 +936,7 @@ static int s2mm005_usbpd_probe(struct i2c_client *i2c,
 	usbpd_data->fac_booting_dry_check  = Lp_DATA.BITS.BOOTING_RUN_DRY;
 #endif
 	if(chip_swver.boot == 0x7) {
-#ifdef CONFIG_SEC_FACTORY
+#if defined(CONFIG_SEC_FACTORY) && defined(CONFIG_CCIC_S2MM005_ALLOW_FW_WRITE)
 		if ((chip_swver.main[0] != fw_swver.main[0]) /* main version */
 			|| (chip_swver.main[1] != fw_swver.main[1]) /* sub version */
 			|| (chip_swver.main[2] != fw_swver.main[2]))  /* product id */
