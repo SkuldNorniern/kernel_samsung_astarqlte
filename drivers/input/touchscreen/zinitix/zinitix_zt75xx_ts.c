@@ -1679,6 +1679,7 @@ static void esd_timeout_handler(struct timer_list *t)
 static void esd_timer_start(u16 sec, struct bt532_ts_info *info)
 {
 	unsigned long flags;
+	struct timer_list *old;
 
 	if(info->sleep_mode){
 		input_info(true, &info->client->dev, "%s skip (sleep_mode)!\n", __func__);
@@ -1686,9 +1687,15 @@ static void esd_timer_start(u16 sec, struct bt532_ts_info *info)
 	}
 
 	spin_lock_irqsave(&info->lock, flags);
-	if (info->p_esd_timeout_tmr != NULL)
-		del_timer_sync(info->p_esd_timeout_tmr);
+	old = info->p_esd_timeout_tmr;
 	info->p_esd_timeout_tmr = NULL;
+	spin_unlock_irqrestore(&info->lock, flags);
+
+	/* del_timer_sync() waits for the handler, which takes info->lock: keep it unlocked */
+	if (old)
+		del_timer_sync(old);
+
+	spin_lock_irqsave(&info->lock, flags);
 	timer_setup(&(info->esd_timeout_tmr), esd_timeout_handler, 0);
 	info->esd_timeout_tmr.expires = jiffies + (HZ * sec);
 	info->p_esd_timeout_tmr = &info->esd_timeout_tmr;
@@ -1699,12 +1706,16 @@ static void esd_timer_start(u16 sec, struct bt532_ts_info *info)
 static void esd_timer_stop(struct bt532_ts_info *info)
 {
 	unsigned long flags;
-	spin_lock_irqsave(&info->lock, flags);
-	if (info->p_esd_timeout_tmr)
-		del_timer_sync(info->p_esd_timeout_tmr);
+	struct timer_list *old;
 
+	spin_lock_irqsave(&info->lock, flags);
+	old = info->p_esd_timeout_tmr;
 	info->p_esd_timeout_tmr = NULL;
 	spin_unlock_irqrestore(&info->lock, flags);
+
+	/* del_timer_sync() waits for the handler, which takes info->lock: keep it unlocked */
+	if (old)
+		del_timer_sync(old);
 }
 
 static void esd_timer_init(struct bt532_ts_info *info)
