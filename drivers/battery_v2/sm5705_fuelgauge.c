@@ -2360,6 +2360,13 @@ static int sm5705_fuelgauge_probe(struct i2c_client *client,
 	int ret = 0;
 	union power_supply_propval raw_soc_val;
 
+	/* i2c_device_id matching can bind this driver to other nodes (the
+	 * s2mm005 pd at 0x33 was probed as a fuel gauge), so claim only the
+	 * sm5705-fuelgauge node. */
+	if (client->dev.of_node &&
+	    !of_device_is_compatible(client->dev.of_node, "sm5705-fuelgauge,i2c"))
+		return -ENODEV;
+
 	pr_info("%s: SM5705 Fuelgauge Driver Loading\n", __func__);
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
