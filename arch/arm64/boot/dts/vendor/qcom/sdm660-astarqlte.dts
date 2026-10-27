@@ -9,6 +9,7 @@
 #include "sdm660.dtsi"
 #include "sdm660-mtp.dtsi"
 #include "sdm660-external-codec.dtsi"
+#include "sdm660-internal-codec.dtsi"
 #include "dsi-panel-s6e3fa7-ams628rf01-fhd-cmd.dtsi"
 #include <dt-bindings/iio/qcom,spmi-vadc.h>
 
@@ -973,6 +974,11 @@
 		/* stock has no reset/irq gpio; stock firmware name is Tfa9872.cnt */
 		nxp,firmware-name = "Tfa9872.cnt";
 	};
+};
+
+/* stock: internal codec card, speaker on tertiary mi2s (speaker-dai) */
+&int_codec {
+	speaker-amps = <&speaker_amp>;
 };
 
 /*
