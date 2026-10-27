@@ -287,3 +287,17 @@ config CAMERA_SYSFS_V2
 	  Creates /sys/class/camera/rear and /sys/class/camera/front with the
 	  camera type, firmware version and module id nodes the Samsung camera
 	  HAL reads at init.
+
+config GET_REAR_MODULE_ID
+	bool "Read rear camera module id from eeprom"
+	depends on MSM_EEPROM
+	help
+	  Copies the rear camera module id from the eeprom map into the
+	  camera sysfs (rear_moduleid).
+
+config GET_FRONT_MODULE_ID
+	bool "Read front camera module id from eeprom"
+	depends on MSM_EEPROM
+	help
+	  Copies the front camera module id from the eeprom map into the
+	  camera sysfs (front_moduleid).

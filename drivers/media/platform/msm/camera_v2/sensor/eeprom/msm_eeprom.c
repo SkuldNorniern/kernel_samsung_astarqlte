@@ -18,6 +18,7 @@
 #include "msm_sd.h"
 #include "msm_cci.h"
 #include "msm_eeprom.h"
+#include "../msm_camera_sysfs.h"
 
 #undef CDBG
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
@@ -150,6 +151,41 @@ static uint32_t msm_eeprom_match_crc(struct msm_eeprom_memory_block_t *data)
  * This function iterates through blocks stored in block->map, reads each
  * region and concatenate them into the pre-allocated block->mapdata
  */
+#if defined(CONFIG_GET_REAR_MODULE_ID) || defined(CONFIG_GET_FRONT_MODULE_ID)
+/* Module id: 16 bytes at 0x00AE in the eeprom map (same address for rear and front on astarqlte). */
+#define FROM_MODULE_ID_ADDR		0x00AE
+#define FROM_MODULE_ID_SIZE		16
+
+/* Copy the module id into camera sysfs. subdev 0 is rear, 1 is front, as stock. */
+static void msm_eeprom_get_module_id(struct msm_eeprom_ctrl_t *e_ctrl)
+{
+	struct msm_eeprom_memory_block_t *cal = &e_ctrl->cal_data;
+
+	if (!cal->mapdata || cal->num_data < FROM_MODULE_ID_ADDR + FROM_MODULE_ID_SIZE) {
+		pr_err("%s: cal data too small for module id (%u)\n",
+			__func__, cal->num_data);
+		return;
+	}
+
+#if defined(CONFIG_GET_REAR_MODULE_ID)
+	if (e_ctrl->subdev_id == 0) {
+		msm_camera_sysfs_set_module_id(false,
+			&cal->mapdata[FROM_MODULE_ID_ADDR], FROM_MODULE_ID_SIZE);
+		return;
+	}
+#endif
+#if defined(CONFIG_GET_FRONT_MODULE_ID)
+	if (e_ctrl->subdev_id == 1)
+		msm_camera_sysfs_set_module_id(true,
+			&cal->mapdata[FROM_MODULE_ID_ADDR], FROM_MODULE_ID_SIZE);
+#endif
+}
+#else
+static inline void msm_eeprom_get_module_id(struct msm_eeprom_ctrl_t *e_ctrl)
+{
+}
+#endif
+
 static int read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl,
 	struct msm_eeprom_memory_block_t *block)
 {
@@ -1034,6 +1070,7 @@ static int msm_eeprom_i2c_probe(struct i2c_client *client,
 			e_ctrl->cal_data.num_data, e_ctrl->cal_data.mapdata);
 
 		e_ctrl->is_supported |= msm_eeprom_match_crc(&e_ctrl->cal_data);
+		msm_eeprom_get_module_id(e_ctrl);
 
 		rc = msm_camera_power_down(power_info,
 			e_ctrl->eeprom_device_type, &e_ctrl->i2c_client);
@@ -1869,6 +1906,7 @@ static int msm_eeprom_platform_probe(struct platform_device *pdev)
 				e_ctrl->cal_data.mapdata[j]);
 
 		e_ctrl->is_supported |= msm_eeprom_match_crc(&e_ctrl->cal_data);
+		msm_eeprom_get_module_id(e_ctrl);
 
 		rc = msm_camera_power_down(power_info,
 			e_ctrl->eeprom_device_type, &e_ctrl->i2c_client);
