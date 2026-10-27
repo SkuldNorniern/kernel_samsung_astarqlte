@@ -642,6 +642,12 @@ source "drivers/misc/vmw_vmci/Kconfig"
 source "drivers/misc/mic/Kconfig"
 source "drivers/misc/genwqe/Kconfig"
 source "drivers/misc/echo/Kconfig"
+config CAMERA_CLASS
+	bool "Shared camera sysfs class"
+	help
+	  Creates the single "camera" class (/sys/class/camera) on first use.
+	  Used by the SM5705 flash LED driver and the camera sensor sysfs.
+
 source "drivers/misc/cxl/Kconfig"
 source "drivers/misc/ocxl/Kconfig"
 source "drivers/misc/cardreader/Kconfig"
