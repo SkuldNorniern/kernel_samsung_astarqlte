@@ -1130,6 +1130,7 @@ static int sec_jack_remove(struct platform_device *pdev)
 	if (hi->pdata->gnd_det_en)
 		gpio_free(hi->pdata->gnd_det_en);
 	hi->pdata->jack_pinctrl = NULL;
+	del_timer_sync(&hi->timer);
 	kfree(hi);
 	atomic_set(&instantiated, 0);
 
