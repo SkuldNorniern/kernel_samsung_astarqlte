@@ -1495,6 +1495,8 @@ static int _parse_battery_node_propertys(struct device *dev, struct device_node 
 			len = len / sizeof(u32);
 			for (i = 0; i < len; i++) {
 				ret = of_property_read_u32_index(child, "cable_number", i, &temp);
+				if (ret < 0 || temp >= SEC_BATTERY_CABLE_MAX)
+					continue;
 				pdata->charging_current[temp].input_current_limit = (unsigned int)input_current;
 				pdata->charging_current[temp].fast_charging_current = (unsigned int)charging_current;
 			}
