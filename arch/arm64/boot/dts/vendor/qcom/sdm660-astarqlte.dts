@@ -528,6 +528,33 @@
 		};
 	};
 
+	i2c_21_pinctrl: i2c_21_pinctrl {
+		mux {
+			pins = "gpio61", "gpio62";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio61", "gpio62";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+
+	i2c_25_pinctrl: i2c_25_pinctrl {
+		mux {
+			pins = "gpio71";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio71";
+			drive-strength = <2>;
+			bias-disable;
+			output-high;
+		};
+	};
+
 /* Not selected by any node: stock sm5705_i2c_pins, kept for later use. */
 	sm5705_i2c_pins {
 		sm5705_i2c_default: default {
@@ -712,6 +739,42 @@
 			fuelgauge,model_type = <1>;
 			fuelgauge,fg_log_enable = <1>;
 		};
+	};
+
+	/* Stock i2c@21 (i2c-gpio, SDA = gpio61, SCL = gpio62). No devices in stock. */
+	i2c-gpio-21 {
+		compatible = "i2c-gpio";
+		gpios = <&tlmm 61 0 &tlmm 62 0>;
+		i2c-gpio,delay-us = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c_21_pinctrl>;
+	};
+
+	/*
+	 * Stock i2c@25 (i2c-gpio, gpio71 only). Stock lists a single gpio and no
+	 * devices, so the bus is kept disabled (i2c-gpio needs SDA and SCL).
+	 */
+	i2c-gpio-25 {
+		status = "disabled";
+		compatible = "i2c-gpio";
+		gpios = <&tlmm 71 0>;
+		i2c-gpio,delay-us = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c_25_pinctrl>;
+	};
+
+	/* Stock i2c@27 (i2c-gpio, SDA = gpio76, SCL = gpio77). Disabled in stock, no devices. */
+	i2c-gpio-27 {
+		status = "disabled";
+		compatible = "i2c-gpio";
+		gpios = <&tlmm 76 0 &tlmm 77 0>;
+		i2c-gpio,delay-us = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 	};
 
 	/* Stock i2c@26 (i2c-gpio, SDA = gpio72, SCL = gpio73): SM5705 MFD bus. */
@@ -1096,8 +1159,7 @@
  * not yet: sm5705 usbldo,
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
- * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
- * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
+ * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry), usb-notifier, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
  */
 
