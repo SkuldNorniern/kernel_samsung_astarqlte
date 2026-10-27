@@ -1331,3 +1331,30 @@
 		adaptation,amp-tx-port-id = <0x1005>;
 	};
 };
+
+ * Camera: drop the X00TD sensor set inherited from sdm660-mtp.dtsi
+ * (sdm660-camera-sensor-mtp.dtsi). The A8 Star camera nodes come next.
+ */
+&soc {
+	/delete-node/ qcom,camera-flash@0;
+	/delete-node/ qcom,camera-flash@1;
+	/delete-node/ cam_avdd_fixed_regulator;
+	/delete-node/ cam_actuator_fixed_regulator;
+	/delete-node/ cam_dvdd_fixed_regulator;
+	/delete-node/ cam_rear_dvdd_fixed_regulator;
+};
+
+&cci {
+	/delete-node/ qcom,actuator@0;
+	/delete-node/ qcom,actuator@1;
+	/delete-node/ qcom,actuator@2;
+	/delete-node/ qcom,ois@0;
+	/delete-node/ qcom,tof@29;
+	/delete-node/ qcom,eeprom@0;
+	/delete-node/ qcom,eeprom@1;
+	/delete-node/ qcom,eeprom@2;
+	/delete-node/ qcom,camera@0;
+	/delete-node/ qcom,camera@1;
+	/delete-node/ qcom,camera@2;
+	/delete-node/ qcom,camera@3;
+};
