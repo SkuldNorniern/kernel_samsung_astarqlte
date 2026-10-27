@@ -88,6 +88,86 @@
 	};
 };
 
+&tlmm {
+	earjack_det_pin {
+		earjack_det_act: earjack_det_act {
+			mux {
+				pins = "gpio43";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio43";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		earjack_det_sus: earjack_det_sus {
+			mux {
+				pins = "gpio43";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio43";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+
+	earjack_switch_pin {
+		earjack_switch_act: earjack_switch_act {
+			mux {
+				pins = "gpio44";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio44";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		earjack_switch_sus: earjack_switch_sus {
+			mux {
+				pins = "gpio44";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio44";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+};
+
+&spi_8 {
+	status = "okay";
+
+	dbmd4_interface: dbmd4_interface@0 {
+		compatible = "dspg,dbmd4-spi";
+		spi-max-frequency = <0xf4240>;
+		read-chunk-size = <0x2000>;
+		write-chunk-size = <0x40000>;
+		reg = <0x0>;
+		qcom,spiop-read = <0x3 0x3 0x0 0x0 0x0>;
+		qcom,spiop-readseq = <0x3 0x3 0x0 0x0 0x0>;
+		qcom,spiop-queryid = <0x90 0x3 0x0 0x0 0x0>;
+		qcom,spiop-pprog = <0x2 0x2 0x0 0x0 0x0>;
+		qcom,spiop-wenable = <0x6 0x0 0x0 0x0 0x0>;
+		qcom,spiop-readst = <0x5 0x0 0x0 0x0 0x0>;
+		qcom,spiop-erase = <0x20 0x2 0x0 0xa 0x1e>;
+		qcom,spi-busy-mask = <0x1>;
+		qcom,spi-page-size = <0x256>;
+		qcom,spi-erase-size = <0x4096>;
+	};
+};
+
 &soc {
 	/*
 	 * Stock i2c@23 (i2c-gpio, SDA = gpio52, SCL = gpio51). The PCAL6524
@@ -114,6 +194,76 @@
 	gpio_vibrator {
 		compatible = "gpio-vibrator";
 		motor-en = <&pcal6524 1 0x0>;
+	};
+
+	/*
+	 * dbmdx voice codec, reset is pcal6524 pin 10 as in stock r07.
+	 */
+	dbmdx {
+		status = "okay";
+		compatible = "dspg,dbmdx-codec";
+		reset-gpio = <&pcal6524 10 0x0>;
+		sv-gpio = <&tlmm 25 0x0>;
+		wakeup-gpio = <&pm660_gpios 11 0x0>;
+		auto_buffering = <0x1>;
+		cmd-interface = <&dbmd4_interface>;
+		feature-va;
+		va-firmware-name = "dbmd4_va_fw.bin";
+		va-config = <0x80000000 0x80000000 0x80000000 0x80290020 0x802210e0 0x80159494 0x801b0020 0x801a0011 0x80230001 0x80108017 0x8aab0040 0x800c7530 0x80000000 0x80000000 0x80000000>;
+		va-speeds = <0x0 0x70800 0x0 0xea600 0x0 0x1e8480 0x0 0x493e00 0x0 0x2dc6c0 0x0 0x493e00>;
+		va-mic-config = <0xa041 0x5044 0x28>;
+		va-mic-mode = <0x0>;
+		master-clk-rate = <0x8000>;
+		firmware_id = <0xdbd4>;
+		use_gpio_for_wakeup = <0x1>;
+		wakeup_set_value = <0x0>;
+		auto_detection = <0x1>;
+		detection_buffer_channels = <0x0>;
+		min_samples_chunk_size = <0x80>;
+		pcm_streaming_mode = <0x1>;
+		boot_options = <0x200>;
+		send_uevent_after_buffering = <0x0>;
+		detection_after_buffering = <0x0>;
+		va_backlog_length = <0x70a>;
+		va_backlog_length_okg = <0x3e8>;
+		send_uevent_on_detection = <0x1>;
+		amodel_options = <0x1b>;
+		digital_mic_digital_gain = <0xa4>;
+		analog_mic_analog_gain = <0x4>;
+	};
+
+	dbmdx_event {
+		status = "okay";
+		compatible = "samsung,dbmdx-event";
+	};
+
+	det_zones: det_zones {
+		#list-det-cells = <0x4>;
+	};
+
+	but_zones: but_zones {
+		#list-but-cells = <0x3>;
+	};
+
+	earjack {
+		compatible = "sec_jack";
+		detect-gpio = <&tlmm 43 0x0>;
+		key-gpio = <&tlmm 44 0x0>;
+		det-dbtime = <0x64>;
+		key-dbtime = <0x1c>;
+		det-zones-list = <&det_zones 0x0 0x2710 0xa 0x2>,
+				 <&det_zones 0x3b6 0x2710 0xa 0x2>,
+				 <&det_zones 0x3b7 0x2710 0xa 0x1>,
+				 <&det_zones 0x270f 0x2710 0xa 0x1>;
+		but-zones-list = <&but_zones 0xe2 0x0 0x17d>,
+				 <&but_zones 0x246 0x17e 0x1a5>,
+				 <&but_zones 0x73 0x1a6 0x207>,
+				 <&but_zones 0x72 0x208 0x2ee>;
+		use-moisture-det;
+		mdet-range = <0xb1 0x4b0>;
+		pinctrl-names = "earjack_gpio_active", "earjack_gpio_suspend";
+		pinctrl-0 = <&earjack_det_act &earjack_switch_act>;
+		pinctrl-1 = <&earjack_det_sus &earjack_switch_sus>;
 	};
 
 	tsp_ldo_en {
@@ -287,7 +437,7 @@
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
  * not yet: sm5705 (charger, fuel gauge, muic, fled, rgb),
  * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
- * not yet: audio (dbmdx, sec_jack, q6audio),
+ * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
  * not yet: camera flash, tdmb, battery/cable-info, thermistors,
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
