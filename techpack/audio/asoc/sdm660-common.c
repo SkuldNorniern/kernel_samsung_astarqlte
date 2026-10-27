@@ -5636,6 +5636,13 @@ static int msm_asoc_machine_remove(struct platform_device *pdev)
 		msm_ext_cdc_deinit(pdata);
 	}
 
+#ifdef CONFIG_SAMSUNG_JACK
+	mutex_lock(&jack_mutex);
+	hs_jack.card = NULL;
+	jack_controls.snd_card_registered = 0;
+	mutex_unlock(&jack_mutex);
+#endif /* CONFIG_SAMSUNG_JACK */
+
 	snd_soc_unregister_card(card);
 	return 0;
 }
