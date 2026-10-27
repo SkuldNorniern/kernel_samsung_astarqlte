@@ -534,6 +534,8 @@ static int __init factory_adsp_init(void)
 
 	pr_info("[FACTORY] %s\n", __func__);
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+	if (!data)
+		return -ENOMEM;
 	data->adsp_skt = netlink_kernel_create(&init_net,
 		NETLINK_ADSP_FAC, &netlink_cfg);
 
