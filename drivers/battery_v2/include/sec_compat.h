@@ -31,6 +31,12 @@ static inline int sec_get_param(enum sec_param_index index, void *value)
 	return -ENODEV;
 }
 
+/* boot-mode query from the sec_bsp code that is not ported yet */
+static inline unsigned int is_boot_recovery(void)
+{
+	return 0;
+}
+
 static inline void sec_abc_send_event(const char *str)
 {
 }

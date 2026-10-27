@@ -295,7 +295,6 @@ unsigned int lpcharge;
 // check bulid error
 unsigned int poweroff_charging;
 int charging_night_mode;
-extern unsigned int is_boot_recovery(void);
 
 EXPORT_SYMBOL(poweroff_charging);
 EXPORT_SYMBOL(lpcharge);
