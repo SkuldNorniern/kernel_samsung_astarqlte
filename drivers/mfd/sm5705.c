@@ -27,7 +27,9 @@
 #include <linux/mfd/sm5705/sm5705.h>
 #include <linux/regulator/machine.h>
 
+#if defined(CONFIG_USE_MUIC)
 #include <linux/muic/muic.h>
+#endif
 
 #if defined (CONFIG_OF)
 #include <linux/of_device.h>
