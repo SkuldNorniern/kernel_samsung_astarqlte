@@ -139,7 +139,6 @@ int etspi_io_burst_read_register(struct etspi_data *etspi,
 	status = spi_sync(etspi->spi, &m);
 
 	if (status < 0) {
-		status = -ENOMEM;
 		pr_err("%s error status = %d\n", __func__, status);
 		goto end;
 	}
@@ -190,7 +189,6 @@ int etspi_io_burst_read_register_backward(struct etspi_data *etspi,
 	status = spi_sync(etspi->spi, &m);
 
 	if (status < 0) {
-		status = -ENOMEM;
 		pr_err("%s error status = %d\n", __func__, status);
 		goto end;
 	}
