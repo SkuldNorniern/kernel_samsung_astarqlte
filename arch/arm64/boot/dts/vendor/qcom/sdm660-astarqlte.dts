@@ -144,11 +144,80 @@
 };
 
 /*
+ * ET5XX fingerprint sensor (etspi) on spi_3. DRDY is tlmm gpio13 and the
+ * vendor pin is gpio12, as in stock r07. The stock sleep and LDO enables sit
+ * on the pcal6524 expander, which is not ported yet, so they are left out and
+ * the driver probe fails with -ENOENT until that expander exists.
+ */
+&tlmm {
+	etspi_drdypin {
+		etspi_drdypin_active: etspi_drdypin_active {
+			mux {
+				pins = "gpio13";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio13";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		etspi_drdypin_suspend: etspi_drdypin_suspend {
+			mux {
+				pins = "gpio13";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio13";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+	};
+
+	etspi_vendorpin {
+		etspi_vendorpin: etspi_vendorpin {
+			mux {
+				pins = "gpio12";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio12";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+};
+
+&spi_3 {
+	status = "okay";
+
+	etspi-spi@0 {
+		compatible = "etspi,et5xx";
+		reg = <0x0>;
+		spi-max-frequency = <16000000>;
+		etspi-drdyPin = <&tlmm 13 0x1>;
+		etspi-vendorPin = <&tlmm 12 0x0>;
+		etspi-min_cpufreq_limit = <0x1ec300>;
+		etspi-chipid = "ET510";
+		pinctrl-names = "default", "sleep", "idle";
+		pinctrl-0 = <&etspi_drdypin_suspend &etspi_vendorpin>;
+		pinctrl-1 = <&etspi_drdypin_suspend>;
+		pinctrl-2 = <&etspi_drdypin_active>;
+	};
+};
+
+/*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
  * not yet: sm5705 (charger, fuel gauge, muic, fled, rgb), pcal6524 expander,
  * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
- * not yet: fingerprint (etspi on spi_3), audio (dbmdx, sec_jack, q6audio),
+ * not yet: audio (dbmdx, sec_jack, q6audio),
  * not yet: camera flash, vibrator, tdmb, battery/cable-info, thermistors,
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
