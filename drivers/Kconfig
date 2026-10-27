@@ -239,6 +239,8 @@ source "drivers/sensors/Kconfig"
 
 source "drivers/fingerprint/Kconfig"
 
+source "drivers/gud/Kconfig"
+
 source "drivers/gpu/msm/Kconfig"
 
 source "drivers/energy_model/Kconfig"

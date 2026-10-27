@@ -196,4 +196,7 @@ obj-$(CONFIG_SIOX)		+= siox/
 obj-$(CONFIG_GNSS)		+= gnss/
 obj-$(CONFIG_SENSORS_SSC)	+= sensors/
 obj-$(CONFIG_SENSORS_FINGERPRINT)	+= fingerprint/
+
+# mobicore
+obj-$(CONFIG_TRUSTONIC_TEE)	+= gud/
 obj-$(CONFIG_SWITCH)		+= switch/
