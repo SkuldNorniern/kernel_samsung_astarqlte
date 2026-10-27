@@ -9587,6 +9587,8 @@ static int sec_battery_remove(struct platform_device *pdev)
 		break;
 	}
 
+	cancel_delayed_work_sync(&battery->init_chg_work);
+	cancel_delayed_work_sync(&battery->monitor_work);
 	flush_workqueue(battery->monitor_wqueue);
 	destroy_workqueue(battery->monitor_wqueue);
 	wake_lock_destroy(&battery->monitor_wake_lock);
