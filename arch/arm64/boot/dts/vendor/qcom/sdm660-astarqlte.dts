@@ -1302,3 +1302,12 @@
 		status = "disabled";
 	};
 };
+
+/* mtp dtsi enables UFS. Stock r07 has ufshc disabled, storage is eMMC (sdhc_1). */
+&ufs1 {
+	status = "disabled";
+};
+
+&ufsphy1 {
+	status = "disabled";
+};
