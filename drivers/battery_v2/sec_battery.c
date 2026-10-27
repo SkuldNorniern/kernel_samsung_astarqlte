@@ -9597,6 +9597,13 @@ static int sec_battery_remove(struct platform_device *pdev)
 	wake_lock_destroy(&battery->siop_level_wake_lock);
 	wake_lock_destroy(&battery->siop_event_wake_lock);
 	wake_lock_destroy(&battery->misc_event_wake_lock);
+	wake_lock_destroy(&battery->wc_headroom_wake_lock);
+#if defined(CONFIG_UPDATE_BATTERY_DATA)
+	wake_lock_destroy(&battery->batt_data_wake_lock);
+#endif
+#ifdef CONFIG_OF
+	wake_lock_destroy(&battery->parse_mode_dt_wake_lock);
+#endif
 	mutex_destroy(&battery->adclock);
 	mutex_destroy(&battery->iolock);
 	mutex_destroy(&battery->misclock);
