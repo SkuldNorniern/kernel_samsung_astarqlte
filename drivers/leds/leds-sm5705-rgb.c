@@ -953,7 +953,7 @@ static int sm5705_rgb_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct sm5705_rgb *sm5705_rgb;
 	struct sm5705_dev *sm5705_dev = dev_get_drvdata(dev->parent);
-	char leds_name[LED_MAX][LED_MAX_STR] = {"led_r", "led_g", "led_b"};
+	static char leds_name[LED_MAX][LED_MAX_STR] = {"led_r", "led_g", "led_b"};
 	int ret;
 
 	sm5705_rgb = devm_kzalloc(dev, sizeof(struct sm5705_rgb), GFP_KERNEL);
