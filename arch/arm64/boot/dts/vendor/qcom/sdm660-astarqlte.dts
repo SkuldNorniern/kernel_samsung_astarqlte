@@ -483,7 +483,52 @@
 		};
 	};
 
-	/* Not selected by any node: stock sm5705_i2c_pins, kept for later use. */
+	/* S2MM005 CCIC: stock s2mm005_irq_pins (gpio58), s2mm005_hard_reset and
+	 * s2mm005_i2c_default (gpio20/21, the bus of i2c-gpio-28). */
+	s2mm005_irq_pins {
+		ccic_irq_default: ccic_irq_default {
+			mux {
+				pins = "gpio58";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio58";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+	};
+
+	s2mm005_hard_reset: s2mm005_hard_reset {
+		mux {
+			pins = "gpio20", "gpio21";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio20", "gpio21";
+			drive-strength = <6>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+
+	s2mm005_i2c_default: s2mm005_i2c_default {
+		mux {
+			pins = "gpio20", "gpio21";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio20", "gpio21";
+			drive-strength = <6>;
+			bias-disable;
+		};
+	};
+
+/* Not selected by any node: stock sm5705_i2c_pins, kept for later use. */
 	sm5705_i2c_pins {
 		sm5705_i2c_default: default {
 			mux {
@@ -714,6 +759,28 @@
 			pinctrl-names = "muic_interrupt_pins_default";
 			pinctrl-0 = <&sm5705_intr_default>;
 			muic,sm5705_switch_gpio = <&pcal6524 13 0>;
+		};
+	};
+
+	/* Stock i2c@28 (i2c-gpio, SDA = gpio20, SCL = gpio21): S2MM005 CCIC bus. */
+	i2c-gpio-28 {
+		compatible = "i2c-gpio";
+		gpios = <&tlmm 20 0 &tlmm 21 0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-names = "default", "hard_reset";
+		pinctrl-0 = <&s2mm005_i2c_default>;
+		pinctrl-1 = <&s2mm005_hard_reset>;
+
+		usbpd-s2mm005@33 {
+			compatible = "sec-s2mm005,i2c";
+			reg = <0x33>;
+			interrupt-parent = <&tlmm>;
+			usbpd,usbpd_int = <&tlmm 58 0x0>;
+			usbpd,s2mm005_sda = <&tlmm 20 0x0>;
+			usbpd,s2mm005_scl = <&tlmm 21 0x0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&ccic_irq_default>;
 		};
 	};
 };
@@ -1007,7 +1074,6 @@
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: sm5705 usbldo,
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
- * not yet: s2mm005 usb-pd,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
  * not yet: camera flash, tdmb, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
