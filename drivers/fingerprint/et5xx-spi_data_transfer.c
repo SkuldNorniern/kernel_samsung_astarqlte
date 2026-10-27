@@ -32,7 +32,7 @@ int etspi_io_burst_write_register(struct etspi_data *etspi,
 		.len = ioc->len + 1,
 	};
 
-	if (ioc->len <= 0 || ioc->len + 2 > etspi->bufsiz) {
+	if (ioc->len <= 0 || ioc->len > etspi->bufsiz - 2) {
 		status = -ENOMEM;
 		pr_err("%s error status = %d\n", __func__, status);
 		goto end;
@@ -75,7 +75,7 @@ int etspi_io_burst_write_register_backward(struct etspi_data *etspi,
 		.len = ioc->len + 1,
 	};
 
-	if (ioc->len <= 0 || ioc->len + 2 > etspi->bufsiz) {
+	if (ioc->len <= 0 || ioc->len > etspi->bufsiz - 2) {
 		status = -ENOMEM;
 		pr_err("%s error status = %d\n", __func__, status);
 		goto end;
@@ -118,7 +118,7 @@ int etspi_io_burst_read_register(struct etspi_data *etspi,
 		.len = ioc->len + 2,
 	};
 
-	if (ioc->len <= 0 || ioc->len + 2 > etspi->bufsiz) {
+	if (ioc->len <= 0 || ioc->len > etspi->bufsiz - 2) {
 		status = -ENOMEM;
 		pr_err("%s error status = %d\n", __func__, status);
 		goto end;
@@ -168,7 +168,7 @@ int etspi_io_burst_read_register_backward(struct etspi_data *etspi,
 		.len = ioc->len + 2,
 	};
 
-	if (ioc->len <= 0 || ioc->len + 2 > etspi->bufsiz) {
+	if (ioc->len <= 0 || ioc->len > etspi->bufsiz - 2) {
 		status = -ENOMEM;
 		pr_err("%s error status = %d\n", __func__, status);
 		goto end;
@@ -218,7 +218,7 @@ int etspi_io_read_registerex(struct etspi_data *etspi, u8 *addr, u8 *buf,
 		.len = len + 2,
 	};
 
-	if (len <= 0 || len + 2 > etspi->bufsiz) {
+	if (len <= 0 || len > etspi->bufsiz - 2) {
 		status = -ENOMEM;
 		pr_err("%s error status = %d", __func__, status);
 		goto end;
