@@ -900,10 +900,8 @@ static int s2mm005_usbpd_probe(struct i2c_client *i2c,
 		msleep(1000);
 		ret = s2mm005_read_byte(i2c, REG_ADD, MSG_BUF, 32);
 		if (ret < 0) {
-			/* to check wrong ccic chipsets, It will be removed after PRA */
-			panic("Intentional Panic - ccic i2c error\n");
-//			dev_err(&i2c->dev, "%s has i2c read error.\n", __func__);
-//			goto err_init_irq;
+			dev_err(&i2c->dev, "%s has i2c read error.\n", __func__);
+			goto err_init_irq;
 		}
 	}
 
@@ -951,7 +949,7 @@ static int s2mm005_usbpd_probe(struct i2c_client *i2c,
 				}
 			}
 		}
-#else
+#elif defined(CONFIG_CCIC_S2MM005_FW_AUTO_UPDATE)
 		if ((chip_swver.main[0] < fw_swver.main[0])
 			|| ((chip_swver.main[0] == fw_swver.main[0]) && (chip_swver.main[1] < fw_swver.main[1]))
 			|| (chip_swver.main[2] != fw_swver.main[2]))
