@@ -80,3 +80,5 @@ obj-$(CONFIG_IPC_LOGGING) += ipc_logging_debug.o
 endif
 
 libftrace-y := ftrace.o
+
+CFLAGS_msm_rtb.o += -mstrict-align
