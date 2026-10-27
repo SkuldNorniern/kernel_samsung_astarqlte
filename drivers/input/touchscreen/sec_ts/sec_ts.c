@@ -1671,12 +1671,24 @@ static int sec_ts_pinctrl_configure(struct sec_ts_data *ts, bool enable)
 
 }
 
+static int sec_ts_get_supplies(struct i2c_client *client,
+		struct sec_ts_plat_data *pdata)
+{
+	if (pdata->use_gpio_ldo) {
+		pdata->avdd_reg = devm_regulator_get(&client->dev, pdata->regulator_avdd);
+		return IS_ERR(pdata->avdd_reg) ? PTR_ERR(pdata->avdd_reg) : 0;
+	}
+	pdata->dvdd_reg = devm_regulator_get(&client->dev, pdata->regulator_dvdd);
+	if (IS_ERR(pdata->dvdd_reg))
+		return PTR_ERR(pdata->dvdd_reg);
+	pdata->avdd_reg = devm_regulator_get(&client->dev, pdata->regulator_avdd);
+	return IS_ERR(pdata->avdd_reg) ? PTR_ERR(pdata->avdd_reg) : 0;
+}
+
 int sec_ts_power(void *data, bool on)
 {
 	struct sec_ts_data *ts = (struct sec_ts_data *)data;
 	const struct sec_ts_plat_data *pdata = ts->plat_data;
-	struct regulator *regulator_dvdd = NULL;
-	struct regulator *regulator_avdd = NULL;
 	static bool enabled;
 	int ret = 0;
 
@@ -1684,51 +1696,30 @@ int sec_ts_power(void *data, bool on)
 		return ret;
 
 	if (pdata->use_gpio_ldo) {
-		regulator_avdd = regulator_get(NULL, pdata->regulator_avdd);
-		if (IS_ERR_OR_NULL(regulator_avdd)) {
-			input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
-				 __func__, pdata->regulator_avdd);
-			ret = PTR_ERR(regulator_avdd);
-			goto use_gpio_ldo_error;
-		}
+		if (!pdata->avdd_reg)
+			return -ENODEV;
 
 		if (on) {
-			ret = regulator_enable(regulator_avdd);
+			ret = regulator_enable(pdata->avdd_reg);
 			if (ret) {
 				input_err(true, &ts->client->dev, "%s: Failed to enable vdd: %d\n", __func__, ret);
 				goto use_gpio_ldo_out;
 			}
 		} else {
-			regulator_disable(regulator_avdd);
+			regulator_disable(pdata->avdd_reg);
 		}
 
 		enabled = on;
 
 use_gpio_ldo_out:
 		input_err(true, &ts->client->dev, "%s: %s: avdd:%s\n", __func__, on ? "on" : "off",
-			regulator_is_enabled(regulator_avdd) ? "on" : "off");
-
-use_gpio_ldo_error:
-		regulator_put(regulator_avdd);
+			regulator_is_enabled(pdata->avdd_reg) ? "on" : "off");
 	} else {
-		regulator_dvdd = regulator_get(NULL, pdata->regulator_dvdd);
-		if (IS_ERR_OR_NULL(regulator_dvdd)) {
-			input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
-				 __func__, pdata->regulator_dvdd);
-			ret = PTR_ERR(regulator_dvdd);
-			goto error;
-		}
-
-		regulator_avdd = regulator_get(NULL, pdata->regulator_avdd);
-		if (IS_ERR_OR_NULL(regulator_avdd)) {
-			input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
-				 __func__, pdata->regulator_avdd);
-			ret = PTR_ERR(regulator_avdd);
-			goto error;
-		}
+		if (!pdata->dvdd_reg || !pdata->avdd_reg)
+			return -ENODEV;
 
 		if (on) {
-			ret = regulator_enable(regulator_dvdd);
+			ret = regulator_enable(pdata->dvdd_reg);
 			if (ret) {
 				input_err(true, &ts->client->dev, "%s: Failed to enable avdd: %d\n", __func__, ret);
 				goto out;
@@ -1736,26 +1727,22 @@ use_gpio_ldo_error:
 
 			sec_ts_delay(1);
 
-			ret = regulator_enable(regulator_avdd);
+			ret = regulator_enable(pdata->avdd_reg);
 			if (ret) {
 				input_err(true, &ts->client->dev, "%s: Failed to enable vdd: %d\n", __func__, ret);
 				goto out;
 			}
 		} else {
-			regulator_disable(regulator_dvdd);
-			regulator_disable(regulator_avdd);
+			regulator_disable(pdata->dvdd_reg);
+			regulator_disable(pdata->avdd_reg);
 		}
 
 		enabled = on;
 
 out:
 		input_err(true, &ts->client->dev, "%s: %s: avdd:%s, dvdd:%s\n", __func__, on ? "on" : "off",
-			regulator_is_enabled(regulator_avdd) ? "on" : "off",
-			regulator_is_enabled(regulator_dvdd) ? "on" : "off");
-
-error:
-		regulator_put(regulator_dvdd);
-		regulator_put(regulator_avdd);
+			regulator_is_enabled(pdata->avdd_reg) ? "on" : "off",
+			regulator_is_enabled(pdata->dvdd_reg) ? "on" : "off");
 	}
 
 	return ret;
@@ -2182,6 +2169,14 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 		if (ret) {
 			input_err(true, &client->dev, "%s: Failed to parse dt\n", __func__);
 			goto error_allocate_mem;
+		}
+		/* parse_dt requested irq_gpio: release it if the supplies defer */
+		ret = sec_ts_get_supplies(client, pdata);
+		if (ret) {
+			input_err(true, &client->dev, "%s: supply not ready: %d\n", __func__, ret);
+			if (gpio_is_valid(pdata->irq_gpio))
+				gpio_free(pdata->irq_gpio);
+			return ret;
 		}
 		tdata = devm_kzalloc(&client->dev,
 				sizeof(struct sec_tclm_data), GFP_KERNEL);
