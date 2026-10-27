@@ -9495,6 +9495,9 @@ err_get_pinctrl:
 error_null_data:
 err_alloc:
 	kfree(info);
+	/* irq gpio was requested by zinitix_init_gpio() in the dt path */
+	if (client->dev.of_node && gpio_is_valid(pdata->gpio_int))
+		gpio_free(pdata->gpio_int);
 err_gpio_request:
 error_allocate_tdata:
 	if (IS_ENABLED(CONFIG_OF))
