@@ -214,9 +214,8 @@
 
 /*
  * ET5XX fingerprint sensor (etspi) on spi_3. DRDY is tlmm gpio13 and the
- * vendor pin is gpio12, as in stock r07. The stock sleep and LDO enables sit
- * on the pcal6524 expander, which is not ported yet, so they are left out and
- * the driver probe fails with -ENOENT until that expander exists.
+ * vendor pin is gpio12, sleep and LDO enables are pcal6524 pins 15 and 6,
+ * as in stock r07.
  */
 &tlmm {
 	etspi_drdypin {
@@ -271,6 +270,8 @@
 		reg = <0x0>;
 		spi-max-frequency = <16000000>;
 		etspi-drdyPin = <&tlmm 13 0x1>;
+		etspi-sleepPin = <&pcal6524 15 0x0>;
+		etspi-ldoPin = <&pcal6524 6 0x0>;
 		etspi-vendorPin = <&tlmm 12 0x0>;
 		etspi-min_cpufreq_limit = <0x1ec300>;
 		etspi-chipid = "ET510";
