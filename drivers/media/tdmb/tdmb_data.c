@@ -196,6 +196,8 @@ static int __add_to_ringbuffer(unsigned char *data, unsigned long data_size)
 					(char *)(data+temp_size),
 					size-temp_size);
 				head = size-temp_size;
+				if (head >= tdmb_ts_size)
+					head = 0;
 			}
 
 			/*
