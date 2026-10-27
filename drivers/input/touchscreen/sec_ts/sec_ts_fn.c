@@ -2688,7 +2688,7 @@ static void module_on_master(void *device_data)
 
 	ret = sec_ts_start_device(ts);
 
-	if (ts->input_dev->disabled) {
+	if (ts->input_disabled) {
 		sec_ts_set_lowpowermode(ts, TO_LOWPOWER_MODE);
 		ts->power_status = SEC_TS_STATE_LPM;
 	}

@@ -686,6 +686,7 @@ struct sec_ts_data {
 	u8 pressure_setting_mode;
 	volatile u8 touch_noise_status;
 	volatile bool input_closed;
+	bool input_disabled;	/* set by pm suspend; 4.19 input core has no input_dev->disabled */
 	long prox_power_off;
 
 	int touch_count;

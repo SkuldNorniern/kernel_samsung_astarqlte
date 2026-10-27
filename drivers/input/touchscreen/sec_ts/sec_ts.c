@@ -2678,7 +2678,7 @@ static void sec_ts_reset_work(struct work_struct *work)
 		return;
 	}
 
-	if (ts->input_dev_touch->disabled) {
+	if (ts->input_disabled) {
 		input_err(true, &ts->client->dev, "%s: call input_close\n", __func__);
 
 		if (ts->lowpower_mode) {
@@ -2844,6 +2844,11 @@ static int sec_ts_input_open(struct input_dev *dev)
 
 	if (!ts->info_work_done) {
 		input_err(true, &ts->client->dev, "%s not finished info work\n", __func__);
+		return 0;
+	}
+
+	if (ts->input_disabled) {
+		input_info(true, &ts->client->dev, "%s: input disabled by suspend\n", __func__);
 		return 0;
 	}
 
@@ -3199,8 +3204,8 @@ static int sec_ts_pm_suspend(struct device *dev)
 			goto out;
 		}
 
-		if (!ts->input_dev->disabled) {
-			ts->input_dev->disabled = true;
+		if (!ts->input_disabled) {
+			ts->input_disabled = true;
 			if (ts->input_dev->users && ts->input_dev->close) {
 				input_err(true, &ts->client->dev,
 						"%s called without input_close\n",
@@ -3227,6 +3232,7 @@ static int sec_ts_pm_resume(struct device *dev)
 {
 	struct sec_ts_data *ts = dev_get_drvdata(dev);
 
+	ts->input_disabled = false;
 	complete_all(&ts->resume_done);
 
 	return 0;
