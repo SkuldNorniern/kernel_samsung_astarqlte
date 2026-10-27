@@ -7,6 +7,7 @@
 #include <linux/device.h>
 #include <linux/module.h>
 #include <linux/i2c.h>
+#include <linux/input/sec_input_dbg.h>
 
 /* TCLM_CONCEPT  - start */
 #define TCLM_LEVEL_NONE			0x00

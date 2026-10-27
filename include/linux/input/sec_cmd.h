@@ -9,6 +9,7 @@
 #include <linux/workqueue.h>
 #include <linux/stat.h>
 #include <linux/err.h>
+#include <linux/input/sec_input_dbg.h>
 
 #ifndef CONFIG_SEC_FACTORY
 #define USE_SEC_CMD_QUEUE
