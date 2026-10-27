@@ -349,7 +349,7 @@ void s2mm005_hard_reset(struct s2mm005_data *usbpd_data)
 
 	struct pinctrl *i2c_pinctrl;
 
-	i2c_lock_adapter(i2c->adapter);
+	i2c_lock_bus(i2c->adapter, I2C_LOCK_ROOT_ADAPTER);
 	i2c_pinctrl = devm_pinctrl_get_select(i2c_dev, "hard_reset");
 	if (IS_ERR(i2c_pinctrl))
 		pr_err("could not set reset pins\n");
@@ -360,7 +360,7 @@ void s2mm005_hard_reset(struct s2mm005_data *usbpd_data)
 	if (IS_ERR(i2c_pinctrl))
 		pr_err("could not set default pins\n");
 	usleep_range(8 * 1000, 8 * 1000);
-	i2c_unlock_adapter(i2c->adapter);
+	i2c_unlock_bus(i2c->adapter, I2C_LOCK_ROOT_ADAPTER);
 	printk("hard_reset: %04d %1d %01d\n", __LINE__, gpio_get_value(usbpd_data->s2mm005_sda), gpio_get_value(usbpd_data->s2mm005_scl));
 }
 
