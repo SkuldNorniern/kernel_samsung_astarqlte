@@ -140,9 +140,7 @@ struct otg_notify {
 	void (*set_ldo_onoff)(void *, unsigned int);
 	void *o_data;
 	void *u_notify;
-#if defined(CONFIG_USB_OTG_WHITELIST_FOR_MDM)
 	int sec_whitelist_enable;
-#endif
 	wait_queue_head_t host_device_recognition_wait_q;
 	int host_super;
 	int host_high;
