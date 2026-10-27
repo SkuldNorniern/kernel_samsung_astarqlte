@@ -278,3 +278,12 @@ config MSM_SEC_CCI_DEBUG
 	help
 	  Enables simulation of secure camera for Secure CCI Realy
 	  debugging.
+
+config CAMERA_SYSFS_V2
+	bool "Samsung camera sysfs (/sys/class/camera/rear, front)"
+	depends on MSM_CAMERA_SENSOR
+	select CAMERA_CLASS
+	help
+	  Creates /sys/class/camera/rear and /sys/class/camera/front with the
+	  camera type, firmware version and module id nodes the Samsung camera
+	  HAL reads at init.
