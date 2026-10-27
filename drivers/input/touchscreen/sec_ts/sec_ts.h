@@ -23,6 +23,7 @@
 #include <linux/i2c.h>
 #include <linux/input.h>
 #include <linux/input/mt.h>
+#include <linux/input/sec_input_codes.h>
 #include <linux/input/sec_cmd.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
