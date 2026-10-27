@@ -6941,7 +6941,11 @@ static int sec_bat_cable_check(struct sec_battery_info *battery,
 		    (battery->chg_limit || battery->vbus_chg_by_siop || battery->vbus_chg_by_full)) {
 			current_cable_type = SEC_BATTERY_CABLE_HV_TA_CHG_LIMIT;
 		} else if (battery->current_event & SEC_BAT_CURRENT_EVENT_AFC &&
+#if defined(CONFIG_CCIC_NOTIFIER)
 			battery->pdic_info.sink_status.rp_currentlvl == RP_CURRENT_LEVEL_DEFAULT) {
+#else
+			0) {	/* no CCIC: no Rp level is reported, pdic_info stays RP_CURRENT_LEVEL_NONE */
+#endif
 			current_cable_type = SEC_BATTERY_CABLE_PREPARE_TA;
 		} else {
 			current_cable_type = SEC_BATTERY_CABLE_TA;
