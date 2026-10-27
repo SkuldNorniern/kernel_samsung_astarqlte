@@ -1291,6 +1291,8 @@ static int etspi_remove(struct spi_device *spi)
 
 	if (etspi != NULL) {
 		etspi_disable_debug_timer();
+		destroy_workqueue(etspi->wq_dbg);
+		g_data = NULL;
 		etspi_platformUninit(etspi);
 
 		/* make sure ops on existing fds can abort cleanly */
