@@ -2422,7 +2422,7 @@ static int sm5705_fuelgauge_probe(struct i2c_client *client,
 	
 	fuelgauge->psy_fg = power_supply_register(&client->dev, 
 		&sm5705_fuelgauge_power_supply_desc, &fuelgauge_cfg);
-	if (!fuelgauge->psy_fg) {
+	if (IS_ERR(fuelgauge->psy_fg)) {
 		pr_err("%s: Failed to Register psy_fg\n", __func__);
 		goto err_free;
 	}
