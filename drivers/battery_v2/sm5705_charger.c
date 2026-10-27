@@ -1777,12 +1777,12 @@ static int sm5705_charger_remove(struct platform_device *pdev)
 	cancel_delayed_work(&charger->aicl_work);
 	cancel_delayed_work(&charger->topoff_work);
 	cancel_delayed_work(&charger->op_mode_switch_work);
+//	free_irq(charger->irq_wpcin_pok, charger);
+	free_irq(charger->irq_vbus_pok, charger);
+//	free_irq(charger->irq_topoff, charger);
+	free_irq(charger->irq_done, charger);
+	free_irq(charger->irq_otgfail, charger);
 	destroy_workqueue(charger->wqueue);
-//	free_irq(charger->irq_wpcin_pok, NULL);
-	free_irq(charger->irq_vbus_pok, NULL);
-//	free_irq(charger->irq_topoff, NULL);
-	free_irq(charger->irq_done, NULL);
-	free_irq(charger->irq_otgfail, NULL);
 	power_supply_unregister(charger->psy_chg);
 	mutex_destroy(&charger->charger_mutex);
 	kfree(charger);
