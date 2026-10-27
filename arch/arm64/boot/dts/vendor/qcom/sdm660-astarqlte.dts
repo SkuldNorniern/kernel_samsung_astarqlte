@@ -741,6 +741,14 @@
 		qcom,hw-settle-time = <200>;
 		qcom,pre-scaling = <1 1>;
 	};
+
+	usb_therm {
+		reg = <ADC_GPIO5_PU2>;
+		label = "usb_therm";
+		qcom,ratiometric;
+		qcom,hw-settle-time = <200>;
+		qcom,pre-scaling = <1 1>;
+	};
 };
 
 
@@ -887,8 +895,10 @@
 		io-channels = <&pm660_vadc ADC_AMUX_THM5_PU2>,
 					<&pm660_vadc ADC_AMUX_THM2_PU2>,
 					<&pm660_vadc ADC_VBAT_SNS>,
-					<&pm660_vadc ADC_BAT_ID_PU2>;
-		io-channel-names = "adc-temp", "adc-chg-temp", "adc-in-bat", "adc-bat";
+					<&pm660_vadc ADC_BAT_ID_PU2>,
+					<&pm660_vadc ADC_GPIO5_PU2>;
+		io-channel-names = "adc-temp", "adc-chg-temp", "adc-in-bat", "adc-bat",
+				"adc-usb-temp";
 		battery,vendor = "BATTERY";
 		battery,charger_name = "sm5705-charger";
 		battery,fuelgauge_name = "sm5705-fuelgauge";
@@ -1200,7 +1210,6 @@
 
 /*
  * Stock r07 nodes not yet ported:
- * not yet: usb-temp adc channel (gpio5 has no 4.19 ADC5 entry).
  * skipped: sm5705 usbldo (no stock node or driver), ss_plog, sec_debug/tima
  * regions, input_booster. dfps_data_mem comes from sdm660.dtsi. /chosen kept
  * (stock: stdout-path serial0, bootargs rcupdate.rcu_expedited=1).
