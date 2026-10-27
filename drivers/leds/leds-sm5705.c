@@ -895,9 +895,11 @@ static DEVICE_ATTR(rear_flash_2, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH, sm5705
  */
 
 /**
- * leds class "flashlight": on/off torch, same current as rear_flash value 1
+ * leds class "flashlight": brightness N (0..32) = torch current N * 10mA
+ * (SM5705 torch register offset = N - 1, 10mA..320mA)
  */
-#define TORCH_ON_CURRENT_MA	60
+#define TORCH_MAX_LEVEL		32
+#define TORCH_STEP_MA		10
 
 static int sm5705_torch_brightness_set(struct led_classdev *led_cdev, enum led_brightness brightness)
 {
@@ -911,7 +913,7 @@ static int sm5705_torch_brightness_set(struct led_classdev *led_cdev, enum led_b
 		ret = sm5705_fled_turn_off(sm5705_fled, index);
 	} else {
 		assistive_light[index] = true;
-		ret = sm5705_fled_turn_on_torch(sm5705_fled, index, TORCH_ON_CURRENT_MA);
+		ret = sm5705_fled_turn_on_torch(sm5705_fled, index, brightness * TORCH_STEP_MA);
 	}
 	mutex_unlock(&lock);
 
@@ -1168,7 +1170,7 @@ static int sm5705_led_probe(struct platform_device *pdev)
     }
 #endif
 	sm5705_fled->torch_cdev.name = "flashlight";
-	sm5705_fled->torch_cdev.max_brightness = 1;
+	sm5705_fled->torch_cdev.max_brightness = TORCH_MAX_LEVEL;
 	sm5705_fled->torch_cdev.brightness_set_blocking = sm5705_torch_brightness_set;
 	ret = led_classdev_register(dev, &sm5705_fled->torch_cdev);
 	if (ret < 0) {
