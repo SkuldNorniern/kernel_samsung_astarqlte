@@ -8,7 +8,6 @@
 
 #include "sdm660.dtsi"
 #include "sdm660-mtp.dtsi"
-#include "sdm660-external-codec.dtsi"
 #include "sdm660-internal-codec.dtsi"
 #include "dsi-panel-s6e3fa7-ams628rf01-fhd-cmd.dtsi"
 #include <dt-bindings/iio/qcom,spmi-vadc.h>
@@ -456,8 +455,6 @@
 		pinctrl-2 = <&etspi_drdypin_active>;
 	};
 };
-
-/* SEC thermistors (stock sec_thermistor@0/2/3). The ADC is pm660 vadc, stock qcom,therm-vadc is replaced by io-channels. */
 
 &tlmm {
 	i2c_24_pinctrl: i2c_24_pinctrl {
@@ -932,6 +929,7 @@
 			charging_current = <0x4e2>;
 		};
 	};
+		/* stock sec_thermistor@0/2/3, qcom,therm-vadc replaced by io-channels */
 		sec_thermistor@0 {
 			compatible = "samsung,sec-ap-thermistor";
 			io-channels = <&pm660_vadc ADC_AMUX_THM1_PU2>;
@@ -974,6 +972,15 @@
 		/* stock has no reset/irq gpio; stock firmware name is Tfa9872.cnt */
 		nxp,firmware-name = "Tfa9872.cnt";
 	};
+};
+
+/* no wsa881x on this board, speaker is tfa9872 */
+&wsa_spkr_en1 {
+	status = "disabled";
+};
+
+&wsa_spkr_en2 {
+	status = "disabled";
 };
 
 /* stock: internal codec card, speaker on tertiary mi2s (speaker-dai) */
