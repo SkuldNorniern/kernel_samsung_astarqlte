@@ -410,7 +410,15 @@ struct tee_mmu *tee_mmu_create(struct mm_struct *mm,
 		mmu->offset = (u32)((uintptr_t)data & ~PAGE_MASK);
 	}
 
-	total_pages_nr = PAGE_ALIGN(mmu->offset + mmu->length) / PAGE_SIZE;
+	if (!mmu->length) {
+		mc_dev_err("zero length buffer");
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* length is user supplied: add in unsigned long so offset+len cannot wrap */
+	total_pages_nr = PAGE_ALIGN((unsigned long)mmu->offset + mmu->length) /
+			 PAGE_SIZE;
 	if (g_ctx.f_mem_ext)
 		l1_entries_max = L1_ENTRIES_MAX;
 	else
