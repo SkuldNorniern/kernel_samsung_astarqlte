@@ -277,7 +277,7 @@
 		pinctrl-1 = <&earjack_det_sus &earjack_switch_sus>;
 	};
 
-	tsp_ldo_en {
+	tsp_ldo_en: tsp_ldo_en {
 		compatible = "regulator-fixed";
 		regulator-name = "tsp_ldo_en";
 		regulator-min-microvolt = <0x1b7740>;
@@ -338,6 +338,7 @@
 		zinitix,irq_gpio = <&tlmm 67 0x0>;
 		zinitix,gpio_ldo_en;
 		zinitix,regulator_avdd = "tsp_ldo_en";
+		tsp_ldo_en-supply = <&tsp_ldo_en>;
 		zinitix,x_resolution = <0x438>;
 		zinitix,y_resolution = <0x8ac>;
 		zinitix,page_size = <0x80>;
@@ -370,6 +371,7 @@
 		sec,mis_cal_check = <0x1>;
 		sec,use_gpio_ldo;
 		sec,regulator_avdd = "tsp_ldo_en";
+		tsp_ldo_en-supply = <&tsp_ldo_en>;
 		sec,regulator_boot_on;
 		sec,project_name = "JACKPOT1", "A530";
 		sec,firmware_name = "tsp_sec/y661_a5y18.fw";
