@@ -1209,6 +1209,89 @@
 };
 
 /*
+ * Reserved memory as on stock G885SKSU4CVG1 (sdm660-sec-astarqlte-kor-r07).
+ * Samsung's LK, modem and TZ use a different layout from the qcom MTP one;
+ * anything left unreserved here gets handed to the page allocator while the
+ * firmware still writes to it.
+ */
+&removed_regions1 {
+	/* stock removed_regions@85800000 ends at 0x89500000 */
+	reg = <0x0 0x86200000 0x0 0x3300000>;
+};
+
+&adsp_fw_mem {
+	reg = <0x0 0x92a00000 0x0 0x2700000>;
+};
+
+&pil_mba_mem {
+	reg = <0x0 0x95100000 0x0 0x200000>;
+};
+
+&cdsp_fw_mem {
+	reg = <0x0 0x95300000 0x0 0x600000>;
+};
+
+&venus_fw_mem {
+	compatible = "removed-dma-pool";
+	/delete-property/ alloc-ranges;
+	/delete-property/ reusable;
+	/delete-property/ alignment;
+	/delete-property/ size;
+	no-map;
+	reg = <0x0 0x95900000 0x0 0x500000>;
+};
+
+&qseecom_mem {
+	size = <0x0 0x1c00000>;
+};
+
+&secure_display_memory {
+	size = <0x0 0x8c00000>;
+};
+
+&cont_splash_mem {
+	reg = <0x0 0x9d400000 0x0 0x23ff000>;
+};
+
+&dfps_data_mem {
+	reg = <0x0 0x9f7ff000 0x0 0x1000>;
+};
+
+/ {
+	reserved-memory {
+		ss_plog@84b00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x84b00000 0x0 0x200000>;
+		};
+
+		sec_debug_region@84e00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x84e00000 0x0 0x800000>;
+		};
+
+		modem_shared_mem_region@96400000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x96400000 0x0 0x6000000>;
+		};
+
+		tima_region@9f800000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x9f800000 0x0 0x200000>;
+		};
+
+		kaslr_region@9fa00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x9fa00000 0x0 0x100000>;
+		};
+	};
+};
+
+/*
  * Stock r07 nodes not yet ported:
  * skipped: sm5705 usbldo (no stock node or driver), ss_plog, sec_debug/tima
  * regions, input_booster. dfps_data_mem comes from sdm660.dtsi. /chosen kept
