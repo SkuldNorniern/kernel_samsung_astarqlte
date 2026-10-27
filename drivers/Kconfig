@@ -237,6 +237,8 @@ source "drivers/esoc/Kconfig"
 
 source "drivers/sensors/Kconfig"
 
+source "drivers/adsp_factory/Kconfig"
+
 source "drivers/fingerprint/Kconfig"
 
 source "drivers/gud/Kconfig"
