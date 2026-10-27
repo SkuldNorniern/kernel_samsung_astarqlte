@@ -33,10 +33,11 @@ void set_fingerprint_attr(struct device *dev,
 			pr_err("%s: fail device_create_file (dev, attributes[%d])\n", __func__, i);
 }
 
-int fingerprint_register(struct device *dev, void *drvdata,
+int fingerprint_register(struct device **devp, void *drvdata,
 	struct device_attribute *attributes[], char *name)
 {
 	int ret = 0;
+	struct device *dev;
 
 	if (!fingerprint_class) {
 		fingerprint_class = class_create(THIS_MODULE, "fingerprint");
@@ -56,6 +57,7 @@ int fingerprint_register(struct device *dev, void *drvdata,
 	}
 
 	set_fingerprint_attr(dev, attributes);
+	*devp = dev;
 
 	return 0;
 }
@@ -66,8 +68,11 @@ void fingerprint_unregister(struct device *dev,
 {
 	int i;
 
+	if (!dev)
+		return;
 	for (i = 0; attributes[i] != NULL; i++)
 		device_remove_file(dev, attributes[i]);
+	device_unregister(dev);
 }
 EXPORT_SYMBOL_GPL(fingerprint_unregister);
 

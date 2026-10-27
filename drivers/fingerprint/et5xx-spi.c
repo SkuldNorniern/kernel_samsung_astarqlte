@@ -1252,7 +1252,7 @@ static int etspi_probe(struct spi_device *spi)
 	else
 		goto etspi_probe_failed;
 
-	status = fingerprint_register(etspi->fp_device,
+	status = fingerprint_register(&etspi->fp_device,
 		etspi, fp_attrs, "fingerprint");
 	if (status) {
 		pr_err("%s sysfs register failed\n", __func__);

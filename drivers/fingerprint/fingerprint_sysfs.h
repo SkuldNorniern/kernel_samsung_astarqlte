@@ -25,7 +25,7 @@
 
 void set_fingerprint_attr(struct device *dev,
 	struct device_attribute *attributes[]);
-int fingerprint_register(struct device *dev, void *drvdata,
+int fingerprint_register(struct device **devp, void *drvdata,
 	struct device_attribute *attributes[], char *name);
 void fingerprint_unregister(struct device *dev,
 	struct device_attribute *attributes[]);
