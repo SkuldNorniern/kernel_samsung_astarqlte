@@ -1205,6 +1205,13 @@
  * skipped: sm5705 usbldo (no stock node or driver), ss_plog, sec_debug/tima
  * regions, input_booster. dfps_data_mem comes from sdm660.dtsi. /chosen kept
  * (stock: stdout-path serial0, bootargs rcupdate.rcu_expedited=1).
+
+ * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
+ * not yet: sm5705 usbldo,
+ * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
+ * not yet: camera flash, tdmb, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
+ * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
+ * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
  */
 
 /*
@@ -1316,4 +1323,17 @@
 /* mtp dtsi enables pm660l wled. Stock r07 wled is disabled, backlight is DCS (bl_ctrl_dcs). */
 &pm660l_wled {
 	status = "disabled";
+};
+
+ * Samsung sound adaptation (SEC_SND_ADAPTATION). Binds to the int_codec
+ * card through the "ADAPTATION Hostless" dai link (platform-name
+ * "q6audio-adaptation"). Stock r07 node samsung,q6audio-adaptation.
+ */
+&soc {
+	samsung,q6audio-adaptation {
+		compatible = "samsung,q6audio-adaptation";
+		adaptation,voice-tracking-tx-port-id = <0x1035>;
+		adaptation,amp-rx-port-id = <0x1004>;
+		adaptation,amp-tx-port-id = <0x1005>;
+	};
 };
