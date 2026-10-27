@@ -137,8 +137,8 @@ enum usb_gsi_reg {
 /* usb notify hooks (stock dwc3-msm.c) */
 static struct device *msm_dwc3;
 int speed_setting;
-/* CC direction is owned by the CCIC driver, not ported yet */
-int CC_DIR;
+/* CC direction is defined by the CCIC driver (s2mm005_cc.c) */
+extern int CC_DIR;
 
 struct dwc3_msm_req_complete {
 	struct list_head list_item;
@@ -329,6 +329,7 @@ struct dwc3_msm {
 	bool			use_pdc_interrupts;
 	enum dwc3_id_state	id_state;
 	int dwc3_msm_current_speed_mode;
+	int dwc3_msm_probe_done;
 	unsigned long		use_pwr_event_for_wakeup;
 #define PWR_EVENT_SS_WAKEUP		BIT(0)
 #define PWR_EVENT_HS_WAKEUP		BIT(1)
@@ -4140,6 +4141,7 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 	device_create_file(&pdev->dev, &dev_attr_bus_vote);
 	device_create_file(&pdev->dev, &dev_attr_usb_data_enabled);
 
+	mdwc->dwc3_msm_probe_done = 1;
 	return 0;
 
 put_dwc3:
@@ -5027,6 +5029,55 @@ void dwc3_max_speed_setting(int speed)
 	speed_setting = speed;
 }
 EXPORT_SYMBOL(dwc3_max_speed_setting);
+
+int dwc3_msm_is_suspended(void)
+{
+	struct dwc3_msm *mdwc;
+	int cur_status = 0;
+
+	if(msm_dwc3 == NULL) {
+		pr_info("%s(): dwc3 is not initialized.\n", __func__);
+		return 1;
+	}
+	
+	mdwc = dev_get_drvdata(msm_dwc3);
+	if(mdwc == NULL || !mdwc->dwc3_msm_probe_done) {
+		pr_info("%s(): mdwc is not initialized.\n", __func__);
+		return 1;
+	}
+
+	cur_status = pm_runtime_suspended(mdwc->dev);
+	
+	dev_info(mdwc->dev, "%s : dwc3_msm_is_suspended status = %d !\n", __func__, cur_status);
+	return cur_status;
+}
+EXPORT_SYMBOL(dwc3_msm_is_suspended);
+
+int dwc3_msm_is_host_highspeed(void)
+{
+	struct dwc3_msm *mdwc;
+	struct dwc3 *dwc;
+
+	if(msm_dwc3 == NULL) {
+		pr_info("%s(): dwc3 is not initialized.\n", __func__);
+		return 0;
+	}
+
+	mdwc = dev_get_drvdata(msm_dwc3);
+	if(mdwc == NULL || !mdwc->dwc3_msm_probe_done) {
+		pr_info("%s(): mdwc is not initialized.\n", __func__);
+		return 0;
+	}
+
+	dwc = platform_get_drvdata(mdwc->dwc3);
+
+	dev_info(mdwc->dev, "%s : current maximum speed is = %d !\n", __func__, dwc->maximum_speed);
+	if(dwc->maximum_speed == USB_SPEED_HIGH)
+		return 1;
+	else
+		return 0;
+}
+EXPORT_SYMBOL(dwc3_msm_is_host_highspeed);
 
 int dwc_msm_id_event(bool enable)
 {
