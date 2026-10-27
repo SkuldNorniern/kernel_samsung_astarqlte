@@ -2,6 +2,13 @@
 # Samsung Electronics TOUCH driver configuration
 #
 
+config SAMSUNG_PRODUCT_SHIP
+        bool "Samsung shipping product build"
+        default n
+        help
+          Set for retail firmware: leaves out the sec_ts raw device sysfs
+          nodes and the vendor-only debug code.
+
 config TOUCHSCREEN_SEC_TS
         tristate "Samsung Electronics Touchscreen"
         depends on I2C
