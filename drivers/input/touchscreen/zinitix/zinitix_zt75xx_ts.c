@@ -1654,6 +1654,7 @@ out:
 static void esd_timeout_handler(struct timer_list *t)
 {
 	struct bt532_ts_info *info = from_timer(info, t, esd_timeout_tmr);
+	unsigned long flags;
 
 #ifdef CONFIG_SECURE_TOUCH
 	if (atomic_read(&info->secure_enabled) == SECURE_TOUCH_ENABLED) {
@@ -1672,7 +1673,9 @@ static void esd_timeout_handler(struct timer_list *t)
 	}
 #endif
 
+	spin_lock_irqsave(&info->lock, flags);
 	info->p_esd_timeout_tmr = NULL;
+	spin_unlock_irqrestore(&info->lock, flags);
 	queue_work(esd_tmr_workqueue, &info->tmr_work);
 }
 
