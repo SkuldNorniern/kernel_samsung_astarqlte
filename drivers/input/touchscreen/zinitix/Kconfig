@@ -20,6 +20,17 @@ config INPUT_TOUCHSCREEN_TCLMV2
 	  and builds the sec_tclm_v2 helper.
 	  If unsure, say N.
 
+config TOUCHSCREEN_ZINITIX_ALLOW_FW_WRITE
+	bool "Allow zinitix chip firmware/EEPROM/TCLM writes"
+	depends on TOUCHSCREEN_ZINITIX_ZT75XX_TCLM
+	default n
+	help
+	  Firmware upgrade (probe, sysfs fw_update, misc ioctl), hardware
+	  calibration, save-status (EEPROM fuse) and NVM/TCLM writes are
+	  refused with -EPERM unless this is set. Off by default: an
+	  interrupted flash write can brick the controller. Reads are not
+	  affected.
+
 # sec_cmd / sec_tclm_v2 / sec_class: shared by zinitix and sec_ts
 config TOUCHSCREEN_SEC_CMD_HELPERS
 	bool

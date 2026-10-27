@@ -46,6 +46,16 @@
 
 #include <linux/input/sec_cmd.h>
 #include <linux/input/sec_tclm_v2.h>
+
+static inline bool zt_fw_write_allowed(void)
+{
+	if (IS_ENABLED(CONFIG_TOUCHSCREEN_ZINITIX_ALLOW_FW_WRITE))
+		return true;
+
+	pr_warn_once("%s: zinitix chip write blocked (TOUCHSCREEN_ZINITIX_ALLOW_FW_WRITE is off)\n",
+		     __func__);
+	return false;
+}
 #include <linux/of_gpio.h>
 #include <linux/firmware.h>
 #include <linux/vmalloc.h>
@@ -2024,6 +2034,9 @@ static u8 ts_upgrade_firmware(struct bt532_ts_info *info,
 	int fuzing_udelay = 8000;
 #endif
 
+	if (!zt_fw_write_allowed())
+		return false;
+
 	verify_data = vzalloc(size);
 	if (verify_data == NULL) {
 		zinitix_printk(KERN_ERR "cannot alloc verify buffer\n");
@@ -2332,6 +2345,9 @@ static bool ts_hw_calibration(struct bt532_ts_info *info)
 	u16	chip_eeprom_info;
 	int time_out = 0;
 
+	if (!zt_fw_write_allowed())
+		return false;
+
 	input_info(true, &client->dev, "%s start\n", __func__);
 
 	if (write_reg(client,
@@ -2451,6 +2467,9 @@ static int fw_update_work(struct bt532_ts_info *info, bool force_update)
 		input_info(true, &info->client->dev, "%s: bringup\n", __func__);
 		return 0;
 	}
+
+	if (!zt_fw_write_allowed())
+		return -EPERM;
 
 	snprintf(fw_path, MAX_FW_PATH, "%s", pdata->firmware_name);
 	input_info(true, &info->client->dev,
@@ -3640,6 +3659,10 @@ static int ts_set_self_sat_touchmode(u16 value)
 static int ts_upgrade_sequence(struct bt532_ts_info *info, const u8 *firmware_data, int restore_cal)
 {
 	int ret = 0;
+
+	if (!zt_fw_write_allowed())
+		return -EPERM;
+
 	disable_irq(misc_info->irq);
 	down(&misc_info->work_lock);
 	misc_info->work_state = UPGRADE;
@@ -6663,6 +6686,9 @@ int set_zt_tsp_nvm_data(struct bt532_ts_info *info, u8 addr, u8 *values, u16 len
 	u8 buff[64];
 	u16 buff_start;
 
+	if (!zt_fw_write_allowed())
+		return -EPERM;
+
 #if ESD_TIMER_INTERVAL
 	esd_timer_stop(misc_info);
 	write_reg(client, BT532_PERIODICAL_INTERRUPT_INTERVAL, 0);
@@ -8584,6 +8610,8 @@ fail_hw_cal:
 		return ret;
 
 	case TOUCH_IOCTL_SEND_SAVE_STATUS:
+		if (!zt_fw_write_allowed())
+			return -EPERM;
 		if (misc_info == NULL) {
 			zinitix_debug_msg("misc device NULL?\n");
 			return -1;
@@ -9277,7 +9305,7 @@ static int bt532_ts_probe(struct i2c_client *client,
 	}
 
 	ret = fw_update_work(info, force_update);
-	if (ret < 0) {
+	if (ret < 0 && !(ret == -EPERM && !zt_fw_write_allowed())) {
 		ret = -EPERM;
 		input_err(true, &info->client->dev,
 			"%s: fail update_work", __func__);
