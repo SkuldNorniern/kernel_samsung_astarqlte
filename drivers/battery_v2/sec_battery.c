@@ -9547,7 +9547,6 @@ err_irq:
 	mutex_destroy(&battery->current_eventlock);
 	mutex_destroy(&battery->typec_notylock);
 	mutex_destroy(&battery->wclock);
-	kfree(pdata);
 err_bat_free:
 	kfree(battery);
 
