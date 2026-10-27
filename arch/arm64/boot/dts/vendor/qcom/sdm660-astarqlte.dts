@@ -665,6 +665,19 @@
 			sm5705,irq-gpio = <&tlmm 69 0x0>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&charger_int_active>;
+
+			sm5705_fled {
+				compatible = "siliconmitus,sm5705-fled";
+				enable = <0x1 0x1>;
+				id = <0x0>;
+				status = "okay";
+				flash-mode-current-mA = <0x5dc>;
+				torch-mode-current-mA = <0xdc>;
+				preflash-mode-current-mA = <0xdc>;
+				used-gpio-control = <0x1>;
+				flash-en-gpio = <&tlmm 60 0>;
+				torch-en-gpio = <&tlmm 41 0>;
+			};
 		};
 	};
 };
@@ -918,40 +931,18 @@
 		};
 };
 
-/*
- * sm5705 leds, merge into sm5705@49 (MFD node not on this tree yet).
- * Ported from stock r07. Stock gpio phandles: 0xa4 = &tlmm,
- * 0x1a2 = &pcal6524 (expander at i2c-gpio-23).
- * sm5705_rgb sits under &soc in stock, sm5705_fled under the sm5705 bus node.
- *
- * &soc {
- * 	sm5705_rgb {
- * 		rgb,vdd-gpio = <&pcal6524 9 0>;
- * 		octa-names = "Black", "White";
- * 		octa-0 = <0x1 0xff 0xff 0x9 0x6 0x12 0x1 0x1 0x2>;
- * 		octa-1 = <0x1 0xff 0xff 0x9 0x6 0x12 0x1 0x1 0x2>;
- * 	};
- * };
- *
- * sm5705@49 {
- * 	sm5705_fled {
- * 		compatible = "siliconmitus,sm5705-fled";
- * 		enable = <0x1 0x1>;
- * 		id = <0x0>;
- * 		status = "okay";
- * 		flash-mode-current-mA = <0x5dc>;
- * 		torch-mode-current-mA = <0xdc>;
- * 		preflash-mode-current-mA = <0xdc>;
- * 		used-gpio-control = <0x1>;
- * 		flash-en-gpio = <&tlmm 60 0>;
- * 		torch-en-gpio = <&tlmm 41 0>;
- * 	};
- * };
- */
+&soc {
+	sm5705_rgb {
+		rgb,vdd-gpio = <&pcal6524 9 0>;
+		octa-names = "Black", "White";
+		octa-0 = <0x1 0xff 0xff 0x9 0x6 0x12 0x1 0x1 0x2>;
+		octa-1 = <0x1 0xff 0xff 0x9 0x6 0x12 0x1 0x1 0x2>;
+	};
+};
 
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
- * not yet: sm5705 muic (muic-sm5705@25), sm5705 fled, sm5705 rgb, sm5705 usbldo,
+ * not yet: sm5705 muic (muic-sm5705@25), sm5705 usbldo,
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
  * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
