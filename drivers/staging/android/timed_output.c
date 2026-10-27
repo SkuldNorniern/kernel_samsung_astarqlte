@@ -62,12 +62,15 @@ ATTRIBUTE_GROUPS(timed_output);
 
 static int create_timed_output_class(void)
 {
+	struct class *cls;
+
 	if (!timed_output_class) {
-		timed_output_class = class_create(THIS_MODULE, "timed_output");
-		if (IS_ERR(timed_output_class))
-			return PTR_ERR(timed_output_class);
+		cls = class_create(THIS_MODULE, "timed_output");
+		if (IS_ERR(cls))
+			return PTR_ERR(cls);
 		atomic_set(&device_count, 0);
-		timed_output_class->dev_groups = timed_output_groups;
+		cls->dev_groups = timed_output_groups;
+		timed_output_class = cls;
 	}
 
 	return 0;
