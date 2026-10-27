@@ -1200,19 +1200,11 @@
 
 /*
  * Stock r07 nodes not yet ported:
- * not yet: camera sensors/eeprom/actuator,
  * not yet: usb-temp adc channel (gpio5 has no 4.19 ADC5 entry).
  * skipped: sm5705 usbldo (no stock node or driver), ss_plog, sec_debug/tima
  * regions, input_booster. dfps_data_mem comes from sdm660.dtsi. /chosen kept
  * (stock: stdout-path serial0, bootargs rcupdate.rcu_expedited=1).
-
- * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
- * not yet: sm5705 usbldo,
- * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
- * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
- * not yet: msm camera flash (rear flash is sm5705 fled, sysfs only), tdmb, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
- * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
- * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
+ * rear flash is the sm5705 fled (sysfs), not an msm camera flash node.
  */
 
 /*
@@ -1340,6 +1332,7 @@
 	};
 };
 
+/*
  * Camera: drop the X00TD sensor set inherited from sdm660-mtp.dtsi
  * (sdm660-camera-sensor-mtp.dtsi). The A8 Star camera nodes come next.
  */
