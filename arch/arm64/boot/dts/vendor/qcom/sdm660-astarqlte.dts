@@ -110,6 +110,12 @@
 		};
 	};
 
+	/* Motor enable is expander pin 1 (stock msm_vibrator motor-en). */
+	gpio_vibrator {
+		compatible = "gpio-vibrator";
+		motor-en = <&pcal6524 1 0x0>;
+	};
+
 	tsp_ldo_en {
 		compatible = "regulator-fixed";
 		regulator-name = "tsp_ldo_en";
@@ -263,7 +269,7 @@
  * not yet: sm5705 (charger, fuel gauge, muic, fled, rgb),
  * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
  * not yet: audio (dbmdx, sec_jack, q6audio),
- * not yet: camera flash, vibrator, tdmb, battery/cable-info, thermistors,
+ * not yet: camera flash, tdmb, battery/cable-info, thermistors,
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
  */

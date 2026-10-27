@@ -601,6 +601,17 @@ config INPUT_PWM_BEEPER
 	  To compile this driver as a module, choose M here: the module will be
 	  called pwm-beeper.
 
+config INPUT_GPIO_VIBRA
+	tristate "GPIO vibrator support"
+	depends on GPIOLIB && OF
+	help
+	  Say Y here to enable support for a vibration motor that is
+	  switched on and off by a single GPIO (motor-en). The GPIO
+	  may be provided by a GPIO expander.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called gpio-vibra.
+
 config INPUT_PWM_VIBRA
 	tristate "PWM vibrator support"
 	depends on PWM
