@@ -21,6 +21,8 @@
 
 #define CAM_STR_LEN		40
 #define CAM_MODULE_ID_LEN	16
+#define CAM_INFO_LEN		100
+#define CAM_CAL_CRC_LEN		37
 
 /* Read-only constant strings, as stock prints for the default project. */
 #define CAM_STR_RO(_attr, _str) \
@@ -75,6 +77,21 @@ CAM_STR_RW(front_camfw_full, front_camfw_full);
 CAM_STR_RW(front_checkfw_user, front_checkfw_user);
 CAM_STR_RW(front_checkfw_factory, front_checkfw_factory);
 
+/* Read-only buffer string, filled by the sensor code (stock: no store). */
+#define CAM_BUF_RO(_attr, _buf) static ssize_t _attr##_show(struct device *dev, 	struct device_attribute *attr, char *buf) { 	return scnprintf(buf, PAGE_SIZE, "%s", _buf); } static DEVICE_ATTR_RO(_attr)
+
+static char rear_cam_info[CAM_INFO_LEN] = "NULL\n";
+static char front_cam_info[CAM_INFO_LEN] = "NULL\n";
+static char rear_fw_crc[CAM_STR_LEN] = "NULL\n";
+static char rear_cal_crc[CAM_CAL_CRC_LEN] = "NULL NULL NULL\n";
+static char isp_core_str[CAM_STR_LEN] = "NULL\n";
+
+CAM_BUF_RO(rear_caminfo, rear_cam_info);
+CAM_BUF_RO(front_caminfo, front_cam_info);
+CAM_STR_RW(rear_fwcheck, rear_fw_crc);
+CAM_STR_RW(rear_calcheck, rear_cal_crc);
+CAM_STR_RW(isp_core, isp_core_str);
+
 /* Stock prints the first 5 chars, then the next 5 as hex. */
 static ssize_t module_id_show(const u8 *id, char *buf)
 {
@@ -115,6 +132,10 @@ static struct attribute *rear_attrs[] = {
 	&dev_attr_rear_checkfw_factory.attr,
 	&dev_attr_rear_camfw_full.attr,
 	&dev_attr_rear_moduleid.attr,
+	&dev_attr_rear_caminfo.attr,
+	&dev_attr_rear_fwcheck.attr,
+	&dev_attr_rear_calcheck.attr,
+	&dev_attr_isp_core.attr,
 	NULL,
 };
 
@@ -134,6 +155,7 @@ static struct attribute *front_attrs[] = {
 	&dev_attr_front_checkfw_user.attr,
 	&dev_attr_front_checkfw_factory.attr,
 	&dev_attr_front_moduleid.attr,
+	&dev_attr_front_caminfo.attr,
 	NULL,
 };
 
