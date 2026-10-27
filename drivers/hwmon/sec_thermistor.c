@@ -219,6 +219,8 @@ static ssize_t sec_therm_show_temp_adc(struct device *dev,
 	int adc;
 
 	adc = sec_therm_get_adc_data(info);
+	if (adc < 0)
+		return adc;
 
 	return sprintf(buf, "%d\n", adc);
 }
