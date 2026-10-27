@@ -134,6 +134,12 @@ enum usb_gsi_reg {
 	GSI_REG_MAX,
 };
 
+/* usb notify hooks (stock dwc3-msm.c) */
+static struct device *msm_dwc3;
+int speed_setting;
+/* CC direction is owned by the CCIC driver, not ported yet */
+int CC_DIR;
+
 struct dwc3_msm_req_complete {
 	struct list_head list_item;
 	struct usb_request *req;
@@ -322,6 +328,7 @@ struct dwc3_msm {
 	bool			suspend;
 	bool			use_pdc_interrupts;
 	enum dwc3_id_state	id_state;
+	int dwc3_msm_current_speed_mode;
 	unsigned long		use_pwr_event_for_wakeup;
 #define PWR_EVENT_SS_WAKEUP		BIT(0)
 #define PWR_EVENT_HS_WAKEUP		BIT(1)
@@ -3765,6 +3772,7 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	platform_set_drvdata(pdev, mdwc);
+	msm_dwc3 = &pdev->dev;
 	mdwc->dev = &pdev->dev;
 
 	INIT_LIST_HEAD(&mdwc->req_complete_list);
@@ -5013,3 +5021,105 @@ static void __exit dwc3_msm_exit(void)
 	platform_driver_unregister(&dwc3_msm_driver);
 }
 module_exit(dwc3_msm_exit);
+
+void dwc3_max_speed_setting(int speed)
+{
+	speed_setting = speed;
+}
+EXPORT_SYMBOL(dwc3_max_speed_setting);
+
+int dwc_msm_id_event(bool enable)
+{
+	struct dwc3_msm *mdwc;
+	struct dwc3 *dwc;
+	enum dwc3_id_state id;
+	int cc_state;
+	int speed;
+
+	if (!msm_dwc3)
+		return NOTIFY_DONE;
+
+	mdwc = dev_get_drvdata(msm_dwc3);
+	dwc = platform_get_drvdata(mdwc->dwc3);
+
+	id = enable ? DWC3_ID_GROUND : DWC3_ID_FLOAT;
+
+	dev_dbg(mdwc->dev, "host: enable=%d (id:%d) event received\n", enable, id);
+
+	if (enable) {
+		cc_state = gpio_get_value(38);
+		mdwc->typec_orientation = cc_state ? ORIENTATION_CC2 : ORIENTATION_CC1;
+	} else {
+		mdwc->typec_orientation = ORIENTATION_NONE;
+	}
+
+	dbg_event(0xFF, "cc_state", mdwc->typec_orientation);
+	dev_dbg(mdwc->dev, "%s: typec_orientation = %d\n", __func__, mdwc->typec_orientation);
+
+	speed = speed_setting;
+	dwc->maximum_speed = (speed == 1) ? USB_SPEED_HIGH : dwc->max_hw_supp_speed;
+	dev_info(mdwc->dev, "%s : max_speed = %d\n", __func__, dwc->maximum_speed);
+	if (mdwc->dwc3_msm_current_speed_mode != USB_SPEED_UNKNOWN &&
+			dwc->maximum_speed != mdwc->dwc3_msm_current_speed_mode) {
+		pr_info("%s : !!!warning!!! phy is already resumed!\n", __func__);
+		pr_info("%s : working speed is = %d , wanting speed is %d!\n",
+			__func__, mdwc->dwc3_msm_current_speed_mode, dwc->maximum_speed);
+		dwc->maximum_speed = mdwc->dwc3_msm_current_speed_mode;
+	}
+	if (mdwc->id_state != id) {
+		mdwc->id_state = id;
+		dbg_event(0xFF, "id_state", mdwc->id_state);
+		queue_work(mdwc->dwc3_wq, &mdwc->resume_work);
+	}
+
+	return NOTIFY_DONE;
+}
+EXPORT_SYMBOL(dwc_msm_id_event);
+
+int dwc_msm_vbus_event(bool enable)
+{
+	struct dwc3_msm *mdwc;
+	struct dwc3 *dwc;
+	int cc_state;
+	int speed;
+
+	if (!msm_dwc3)
+		return NOTIFY_DONE;
+
+	mdwc = dev_get_drvdata(msm_dwc3);
+	dwc = platform_get_drvdata(mdwc->dwc3);
+
+	printk(KERN_DEBUG "usb: cc_state=%02x\n", CC_DIR);
+
+	if (enable) {
+		cc_state = gpio_get_value(38);
+		mdwc->typec_orientation = cc_state ? ORIENTATION_CC2 : ORIENTATION_CC1;
+	} else {
+		mdwc->typec_orientation = ORIENTATION_NONE;
+	}
+	dev_dbg(mdwc->dev, "%s: vbus_enable = %d, typec_orientation = %d\n",
+		__func__, enable, mdwc->typec_orientation);
+
+	if (mdwc->vbus_active == enable)
+		return NOTIFY_DONE;
+
+	speed = speed_setting;
+	dwc->maximum_speed = (speed == 1) ? USB_SPEED_HIGH : dwc->max_hw_supp_speed;
+	dev_info(mdwc->dev, "%s : max_speed = %d\n", __func__, dwc->maximum_speed);
+	if (mdwc->dwc3_msm_current_speed_mode != USB_SPEED_UNKNOWN &&
+			dwc->maximum_speed != mdwc->dwc3_msm_current_speed_mode) {
+		pr_info("%s : !!!warning!!! phy is already resumed!\n", __func__);
+		pr_info("%s : working speed is = %d , wanting speed is %d!\n",
+			__func__, mdwc->dwc3_msm_current_speed_mode, dwc->maximum_speed);
+		dwc->maximum_speed = mdwc->dwc3_msm_current_speed_mode;
+	}
+	mdwc->vbus_active = enable;
+
+	if ((dwc->dr_mode == USB_DR_MODE_OTG || dwc->dr_mode == USB_DR_MODE_DRD)
+			&& !mdwc->in_restart) {
+		dbg_event(0xFF, "Q RW (vbus)", mdwc->vbus_active);
+		queue_work(mdwc->dwc3_wq, &mdwc->resume_work);
+	}
+	return NOTIFY_DONE;
+}
+EXPORT_SYMBOL(dwc_msm_vbus_event);
