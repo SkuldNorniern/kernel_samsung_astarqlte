@@ -833,6 +833,14 @@ config LEDS_SM5705
 	  A driver for Siliconmitus SM5705 flash LED. The rear flash is
 	  exposed as /sys/class/camera/flash/rear_flash.
 
+config LEDS_SM5705_RGB
+	tristate "LED driver for SM5705 RGB LED"
+	depends on LEDS_CLASS && MFD_SM5705
+	help
+	  This option enables support for the RGB LED driver of the SM5705,
+	  accessed via the I2C bus. SM5705 is a fully programmable, constant
+	  current three channel LED driver with flexible control interface.
+
 config DUAL_LEDS_FLASH
 	bool "Dual leds flash driver for main camera"
 	depends on LEDS_SM5705

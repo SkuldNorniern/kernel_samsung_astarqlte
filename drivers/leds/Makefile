@@ -91,6 +91,7 @@ obj-$(CONFIG_LEDS_CR0014114)		+= leds-cr0014114.o
 obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
 
 obj-$(CONFIG_LEDS_SM5705)		+= leds-sm5705.o
+obj-$(CONFIG_LEDS_SM5705_RGB)		+= leds-sm5705-rgb.o
 
 # LED Userspace Drivers
 obj-$(CONFIG_LEDS_USER)			+= uleds.o
