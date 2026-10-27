@@ -555,7 +555,38 @@
 		};
 	};
 
-/* Not selected by any node: stock sm5705_i2c_pins, kept for later use. */
+	/*
+	 * Stock mdss_disp_det_active/suspend (gpio45, gpio49). The stock panel ESD
+	 * irq uses gpio49. 4.19 has no err-fg consumer, so these are not selected yet.
+	 */
+	mdss_disp_det_active: mdss_disp_det_active {
+		mux {
+			pins = "gpio45", "gpio49";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio45", "gpio49";
+			drive-strength = <2>;
+			bias-disable;
+			input-enable;
+		};
+	};
+
+	mdss_disp_det_suspend: mdss_disp_det_suspend {
+		mux {
+			pins = "gpio45", "gpio49";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio45", "gpio49";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+
+	/* Not selected by any node: stock sm5705_i2c_pins, kept for later use. */
 	sm5705_i2c_pins {
 		sm5705_i2c_default: default {
 			mux {
@@ -1157,7 +1188,7 @@
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: sm5705 usbldo,
- * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
+ * not yet: dfps_data_mem,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
  * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry), usb-notifier, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
