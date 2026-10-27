@@ -10,6 +10,7 @@
 #include "sdm660-mtp.dtsi"
 #include "sdm660-external-codec.dtsi"
 #include "dsi-panel-s6e3fa7-ams628rf01-fhd-cmd.dtsi"
+#include <dt-bindings/iio/qcom,spmi-vadc.h>
 
 / {
 	model = "Samsung A-STARQLTE KOR PROJECT Rev06 (board-id,07)";
@@ -442,3 +443,33 @@
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
  */
+
+/*
+ * Samsung 3.5 mm earjack (sec_jack) ADC inputs. The ear and moisture
+ * sense lines sit on PM660 VADC hw channels GPIO6 (0x17) and GPIO2 (0x13),
+ * the same channels stock r07 used (amux_channel / moisture-channel).
+ * The machine driver resolves them by io-channel-names.
+ */
+&pm660_vadc {
+	ear_adc_35 {
+		reg = <ADC_GPIO6>;
+		label = "ear_adc_35";
+		qcom,pre-scaling = <1 1>;
+	};
+
+	moisture_adc {
+		reg = <ADC_GPIO2>;
+		label = "moisture_adc";
+		qcom,pre-scaling = <1 1>;
+	};
+};
+
+&int_codec {
+	status = "okay";
+	io-channels = <&pm660_vadc ADC_GPIO6>, <&pm660_vadc ADC_GPIO2>;
+	io-channel-names = "earjack-read", "moisture-read";
+};
+
+&pmic_analog_codec {
+	status = "okay";
+};
