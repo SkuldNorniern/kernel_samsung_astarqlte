@@ -6,8 +6,12 @@
  * GPIO expander, so the GPIO is always accessed with the sleeping API from
  * a work item.
  *
- * Only on/off is supported: any non-zero FF_RUMBLE magnitude turns the
- * motor on, zero turns it off.
+ * The motor is exposed three ways, all driving the same GPIO:
+ *  - input force-feedback (FF_RUMBLE): any non-zero magnitude turns the
+ *    motor on, zero turns it off;
+ *  - timed_output class (/sys/class/timed_output/vibrator/enable), as used
+ *    by the stock Samsung vibrator HAL: N > 0 runs for N ms, 0 stops,
+ *    -1 runs until stopped.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -15,6 +19,7 @@
  * option) any later version.
  */
 #include <linux/gpio.h>
+#include <linux/hrtimer.h>
 #include <linux/input.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -23,13 +28,18 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 
+#include "../../staging/android/timed_output.h"
+
 #define GPIO_VIBRATOR_NAME	"gpio-vibrator"
 
 struct gpio_vibrator {
 	struct input_dev *input;
 	struct work_struct play_work;
+	struct hrtimer stop_timer;
+	struct timed_output_dev tdev;
 	int gpio;
-	u16 level;
+	u16 level;		/* force-feedback magnitude */
+	bool timed_on;		/* timed_output / led activation */
 };
 
 static void gpio_vibrator_play_work(struct work_struct *work)
@@ -37,7 +47,8 @@ static void gpio_vibrator_play_work(struct work_struct *work)
 	struct gpio_vibrator *vib = container_of(work, struct gpio_vibrator,
 						 play_work);
 
-	gpio_set_value_cansleep(vib->gpio, vib->level ? 1 : 0);
+	gpio_set_value_cansleep(vib->gpio,
+				(vib->level || vib->timed_on) ? 1 : 0);
 }
 
 static int gpio_vibrator_play_effect(struct input_dev *dev, void *data,
@@ -60,15 +71,68 @@ static void gpio_vibrator_close(struct input_dev *input)
 
 	cancel_work_sync(&vib->play_work);
 	vib->level = 0;
-	gpio_set_value_cansleep(vib->gpio, 0);
+	gpio_set_value_cansleep(vib->gpio, vib->timed_on ? 1 : 0);
 }
 
 static void gpio_vibrator_cancel_work(void *data)
 {
 	struct gpio_vibrator *vib = data;
 
+	hrtimer_cancel(&vib->stop_timer);
 	cancel_work_sync(&vib->play_work);
 	gpio_set_value_cansleep(vib->gpio, 0);
+}
+
+static enum hrtimer_restart gpio_vibrator_stop_timer(struct hrtimer *timer)
+{
+	struct gpio_vibrator *vib = container_of(timer, struct gpio_vibrator,
+						 stop_timer);
+
+	vib->timed_on = false;
+	schedule_work(&vib->play_work);
+
+	return HRTIMER_NORESTART;
+}
+
+/* ms > 0: run for ms; ms == 0: stop; ms < 0: run until stopped. */
+static void gpio_vibrator_timed_start(struct gpio_vibrator *vib, int ms)
+{
+	hrtimer_cancel(&vib->stop_timer);
+
+	if (ms == 0) {
+		vib->timed_on = false;
+	} else {
+		vib->timed_on = true;
+		if (ms > 0)
+			hrtimer_start(&vib->stop_timer, ms_to_ktime(ms),
+				      HRTIMER_MODE_REL);
+	}
+
+	schedule_work(&vib->play_work);
+}
+
+static void gpio_vibrator_tdev_enable(struct timed_output_dev *tdev, int value)
+{
+	struct gpio_vibrator *vib = container_of(tdev, struct gpio_vibrator,
+						 tdev);
+
+	gpio_vibrator_timed_start(vib, value);
+}
+
+static int gpio_vibrator_tdev_get_time(struct timed_output_dev *tdev)
+{
+	struct gpio_vibrator *vib = container_of(tdev, struct gpio_vibrator,
+						 tdev);
+
+	if (!hrtimer_active(&vib->stop_timer))
+		return 0;
+
+	return ktime_to_ms(hrtimer_get_remaining(&vib->stop_timer));
+}
+
+static void gpio_vibrator_unregister_timed(void *data)
+{
+	timed_output_dev_unregister(data);
 }
 
 static int gpio_vibrator_probe(struct platform_device *pdev)
@@ -101,6 +165,8 @@ static int gpio_vibrator_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	INIT_WORK(&vib->play_work, gpio_vibrator_play_work);
+	hrtimer_init(&vib->stop_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	vib->stop_timer.function = gpio_vibrator_stop_timer;
 
 	err = devm_add_action_or_reset(dev, gpio_vibrator_cancel_work, vib);
 	if (err)
@@ -125,6 +191,19 @@ static int gpio_vibrator_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to register input device: %d\n", err);
 		return err;
 	}
+
+	vib->tdev.name = "vibrator";
+	vib->tdev.enable = gpio_vibrator_tdev_enable;
+	vib->tdev.get_time = gpio_vibrator_tdev_get_time;
+	err = timed_output_dev_register(&vib->tdev);
+	if (err) {
+		dev_err(dev, "failed to register timed_output: %d\n", err);
+		return err;
+	}
+	err = devm_add_action_or_reset(dev, gpio_vibrator_unregister_timed,
+				       &vib->tdev);
+	if (err)
+		return err;
 
 	platform_set_drvdata(pdev, vib);
 
