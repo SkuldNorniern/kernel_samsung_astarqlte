@@ -89,6 +89,8 @@ source "drivers/bcma/Kconfig"
 
 source "drivers/mfd/Kconfig"
 
+source "drivers/staging/samsung/sec_notifier/Kconfig"
+
 source "drivers/battery_v2/Kconfig"
 
 source "drivers/regulator/Kconfig"
