@@ -79,15 +79,19 @@ static int sec_bat_read_adc(int adc_channel, struct sec_adc_result *result)
 		}
 	}
 
+	/*
+	 * iio_read_channel_raw()/processed() return the IIO value type
+	 * (IIO_VAL_INT == 1) on success, so only negative values are errors.
+	 */
 	do {
 		ret = iio_read_channel_raw(entry->channel, &raw);
-		if (!ret)
+		if (ret >= 0)
 			ret = iio_read_channel_processed(entry->channel, &processed);
 		retry_cnt--;
-	} while ((retry_cnt > 0) && ret);
+	} while ((retry_cnt > 0) && ret < 0);
 
 use_prev:
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Error in ADC(%d) ret(%d)\n", __func__, adc_channel, ret);
 		*result = entry->prev_value;
 		return ret;
