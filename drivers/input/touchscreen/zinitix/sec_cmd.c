@@ -83,7 +83,13 @@ void sec_cmd_set_cmd_result_all(struct sec_cmd_data *data, char *buff, int len, 
 
 void sec_cmd_set_cmd_result(struct sec_cmd_data *data, char *buff, int len)
 {
-	strncat(data->cmd_result, buff, len);
+	size_t used = strnlen(data->cmd_result, SEC_CMD_RESULT_STR_LEN);
+	size_t room = SEC_CMD_RESULT_STR_LEN - used - 1;
+
+	if (len < 0)
+		return;
+	/* keep room for the NUL, large raw dumps must not overrun cmd_result */
+	strncat(data->cmd_result, buff, min_t(size_t, (size_t)len, room));
 }
 
 #ifndef USE_SEC_CMD_QUEUE
