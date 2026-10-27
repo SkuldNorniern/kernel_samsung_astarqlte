@@ -1320,6 +1320,16 @@
 };
 
 /*
+ * USB VBUS/ID come from the SM5705 MUIC and S2MM005 CCIC (usb_notify hooks in
+ * dwc3-msm), not from the pm660 charger, which is disabled here. The extcon and
+ * vbus supply from the base point at it and keep dwc3-msm deferring forever.
+ */
+&usb3 {
+	/delete-property/ extcon;
+	/delete-property/ vbus_dwc3-supply;
+};
+
+/*
  * Stock r07 nodes not yet ported:
  * skipped: sm5705 usbldo (no stock node or driver), ss_plog, sec_debug/tima
  * regions, input_booster. dfps_data_mem comes from sdm660.dtsi. /chosen kept
