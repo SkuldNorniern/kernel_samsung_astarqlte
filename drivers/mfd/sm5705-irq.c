@@ -263,7 +263,7 @@ int sm5705_irq_init(struct sm5705_dev *sm5705)
 
     if (!sm5705->irq_base) {
      dev_err(sm5705->dev, "No interrupt base specified.\n");
-     return 0;
+     return -EINVAL;
     }
 
     mutex_init(&sm5705->irqlock);
