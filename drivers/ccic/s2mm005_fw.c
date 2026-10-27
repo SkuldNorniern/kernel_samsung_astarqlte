@@ -380,6 +380,12 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 		if (0 < fw_size) {
 			unsigned char *fw_data;
 			fw_data = kzalloc(fw_size, GFP_KERNEL);
+			if (!fw_data) {
+				ret = -ENOMEM;
+				filp_close(fp, NULL);
+				set_fs(old_fs);
+				return ret;
+			}
 			nread = vfs_read(fp, (char __user *)fw_data,
 					 fw_size, &fp->f_pos);
 
@@ -390,6 +396,11 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 				pr_err("%s: failed to read firmware file, nread %ld Bytes\n",
 					      __func__, nread);
 				ret = -EIO;
+			} else if (fw_size < 16 ||
+				   ((struct s2mm005_fw *)fw_data)->size > fw_size - 16 ||
+				   (((struct s2mm005_fw *)fw_data)->size & 0x3)) {
+				pr_err("%s: invalid firmware image, size %ld\n", __func__, fw_size);
+				ret = -EINVAL;
 			} else {
 				fw_hd = (struct s2mm005_fw*)fw_data;
 				pr_err("%02X %02X %02X %02X size:%05d\n", fw_hd->boot, fw_hd->main[0], fw_hd->main[1], fw_hd->main[2], fw_hd->size);
@@ -399,6 +410,9 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 				/* TODO : ENABLE IRQ */
 			}
 			kfree(fw_data);
+		} else {
+			pr_err("%s: empty firmware file\n", __func__);
+			ret = -EINVAL;
 		}
 
 		filp_close(fp, NULL);
