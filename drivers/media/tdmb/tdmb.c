@@ -1198,6 +1198,16 @@ static struct class_attribute class_attr_unit_test =
 	__ATTR(unit_test, 0664, tdmb_unit_test_show, tdmb_unit_test_store);
 #endif
 
+static void tdmb_destroy_chrdev(void)
+{
+#if defined(CONFIG_TDMB_QUALCOMM)
+	pm_qos_remove_request(&tdmb_pm_qos_req);
+#endif
+	device_destroy(tdmb_class, MKDEV(TDMB_DEV_MAJOR, TDMB_DEV_MINOR));
+	class_destroy(tdmb_class);
+	unregister_chrdev(TDMB_DEV_MAJOR, TDMB_DEV_NAME);
+}
+
 static int tdmb_probe(struct platform_device *pdev)
 {
 	int ret;
@@ -1269,8 +1279,10 @@ static int tdmb_probe(struct platform_device *pdev)
 				PM_QOS_DEFAULT_VALUE);
 #endif
 	tdmb_wlock = wakeup_source_register(NULL, "tdmb_wlock");
-	if (!tdmb_wlock)
+	if (!tdmb_wlock) {
+		tdmb_destroy_chrdev();
 		return -ENOMEM;
+	}
 #endif
 
 #ifdef CONFIG_TDMB_VREG_SUPPORT
