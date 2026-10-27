@@ -434,26 +434,32 @@ static int sec_audio_voice_tracking_info_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int sec_audio_asm_get(struct snd_kcontrol *kcontrol,
+			struct snd_ctl_elem_value *ucontrol)
+{
+	return 0;
+}
+
 static const struct snd_kcontrol_new samsung_solution_mixer_controls[] = {
 	SOC_SINGLE_MULTI_EXT("SA data", SND_SOC_NOPM, 0, 65535, 0, 27,
-				NULL, sec_audio_sound_alive_put),
+				sec_audio_asm_get, sec_audio_sound_alive_put),
 	SOC_SINGLE_MULTI_EXT("VSP data", SND_SOC_NOPM, 0, 65535, 0, 1,
-				NULL, sec_audio_play_speed_put),
+				sec_audio_asm_get, sec_audio_play_speed_put),
 	SOC_SINGLE_MULTI_EXT("Audio DHA data", SND_SOC_NOPM, 0, 65535, 0, 14,
-				NULL, sec_audio_adaptation_sound_put),
+				sec_audio_asm_get, sec_audio_adaptation_sound_put),
 	SOC_SINGLE_MULTI_EXT("LRSM data", SND_SOC_NOPM, 0, 65535, 0, 2,
-				NULL, sec_audio_sound_balance_put),
+				sec_audio_asm_get, sec_audio_sound_balance_put),
 	SOC_SINGLE_EXT("VoiceTrackInfo", SND_SOC_NOPM, 0, 2147483647, 0,
 				sec_audio_voice_tracking_info_get,
 				sec_audio_voice_tracking_info_put),
 	SOC_SINGLE_MULTI_EXT("MSP data", SND_SOC_NOPM, 0, 65535, 0, 1,
-				NULL, sec_audio_myspace_put),
+				sec_audio_asm_get, sec_audio_myspace_put),
 	SOC_SINGLE_MULTI_EXT("SB enable", SND_SOC_NOPM, 0, 65535, 0, 1,
-				NULL, sec_audio_sound_boost_put),
+				sec_audio_asm_get, sec_audio_sound_boost_put),
 	SOC_SINGLE_MULTI_EXT("UPSCALER", SND_SOC_NOPM, 0, 65535, 0, 1,
-				NULL, sec_audio_upscaler_put),
+				sec_audio_asm_get, sec_audio_upscaler_put),
 	SOC_SINGLE_MULTI_EXT("SB rotation", SND_SOC_NOPM, 0, 65535, 0, 1,
-				NULL, sec_audio_sb_rotation_put),
+				sec_audio_asm_get, sec_audio_sb_rotation_put),
 };
 
 static int q6audio_adaptation_component_probe(struct snd_soc_component *component)
