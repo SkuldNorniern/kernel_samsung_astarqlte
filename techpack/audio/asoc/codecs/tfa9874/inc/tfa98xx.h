@@ -33,9 +33,7 @@
 #define TFA98XX_FLAG_LP_MODES	        (1 << 7)
 #define TFA98XX_FLAG_TDM_DEVICE         (1 << 8)
 
-#ifdef TFA9874_NONDSP_STEREO
 #define TFA98XX_FLAG_CHIP_SELECTED      (1 << 16)
-#endif
 
 #define TFA98XX_NUM_RATES		9
 
