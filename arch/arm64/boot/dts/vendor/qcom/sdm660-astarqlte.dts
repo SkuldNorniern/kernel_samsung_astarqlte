@@ -1311,3 +1311,8 @@
 &ufsphy1 {
 	status = "disabled";
 };
+
+/* mtp dtsi enables pm660l wled. Stock r07 wled is disabled, backlight is DCS (bl_ctrl_dcs). */
+&pm660l_wled {
+	status = "disabled";
+};
