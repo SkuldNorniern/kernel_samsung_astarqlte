@@ -1302,7 +1302,7 @@ static void clear_report_data(struct bt532_ts_info *info);
 static void esd_timer_start(u16 sec, struct bt532_ts_info *info);
 static void esd_timer_stop(struct bt532_ts_info *info);
 static void esd_timer_init(struct bt532_ts_info *info);
-static void esd_timeout_handler(unsigned long data);
+static void esd_timeout_handler(struct timer_list *t);
 #endif
 
 #ifdef TCLM_CONCEPT
@@ -1639,9 +1639,9 @@ out:
 }
 
 #if ESD_TIMER_INTERVAL
-static void esd_timeout_handler(unsigned long data)
+static void esd_timeout_handler(struct timer_list *t)
 {
-	struct bt532_ts_info *info = (struct bt532_ts_info *)data;
+	struct bt532_ts_info *info = from_timer(info, t, esd_timeout_tmr);
 
 #ifdef CONFIG_SECURE_TOUCH
 	if (atomic_read(&info->secure_enabled) == SECURE_TOUCH_ENABLED) {
@@ -1675,15 +1675,9 @@ static void esd_timer_start(u16 sec, struct bt532_ts_info *info)
 
 	spin_lock_irqsave(&info->lock, flags);
 	if (info->p_esd_timeout_tmr != NULL)
-#ifdef CONFIG_SMP
-		del_singleshot_timer_sync(info->p_esd_timeout_tmr);
-#else
-		del_timer(info->p_esd_timeout_tmr);
-#endif
+		del_timer_sync(info->p_esd_timeout_tmr);
 	info->p_esd_timeout_tmr = NULL;
-	init_timer(&(info->esd_timeout_tmr));
-	info->esd_timeout_tmr.data = (unsigned long)(info);
-	info->esd_timeout_tmr.function = esd_timeout_handler;
+	timer_setup(&(info->esd_timeout_tmr), esd_timeout_handler, 0);
 	info->esd_timeout_tmr.expires = jiffies + (HZ * sec);
 	info->p_esd_timeout_tmr = &info->esd_timeout_tmr;
 	add_timer(&info->esd_timeout_tmr);
@@ -1695,11 +1689,7 @@ static void esd_timer_stop(struct bt532_ts_info *info)
 	unsigned long flags;
 	spin_lock_irqsave(&info->lock, flags);
 	if (info->p_esd_timeout_tmr)
-#ifdef CONFIG_SMP
-		del_singleshot_timer_sync(info->p_esd_timeout_tmr);
-#else
-		del_timer(info->p_esd_timeout_tmr);
-#endif
+		del_timer_sync(info->p_esd_timeout_tmr);
 
 	info->p_esd_timeout_tmr = NULL;
 	spin_unlock_irqrestore(&info->lock, flags);
@@ -1709,9 +1699,7 @@ static void esd_timer_init(struct bt532_ts_info *info)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&info->lock, flags);
-	init_timer(&(info->esd_timeout_tmr));
-	info->esd_timeout_tmr.data = (unsigned long)(info);
-	info->esd_timeout_tmr.function = esd_timeout_handler;
+	timer_setup(&(info->esd_timeout_tmr), esd_timeout_handler, 0);
 	info->p_esd_timeout_tmr = NULL;
 	spin_unlock_irqrestore(&info->lock, flags);
 }
