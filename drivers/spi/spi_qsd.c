@@ -47,6 +47,25 @@
 #include <linux/ipc_logging.h>
 #include "spi_qsd.h"
 
+/*
+ * Stock (CONFIG_SENSORS_FP_SPI_NUMBER=3, ENABLE_SENSORS_FPRINT_SECURE) leaves
+ * the fingerprint spi bus alone: the TZ owns QUP3 and its BAM pipes. The
+ * spi core calls spi_setup() when it registers the etspi child, so setup must
+ * not program QUP3 registers on this bus.
+ */
+#if defined(CONFIG_SENSORS_FINGERPRINT)
+#define MSM_SPI_FP_TZ_BUS	3
+static inline bool msm_spi_fp_tz_bus(int bus_num)
+{
+	return bus_num == MSM_SPI_FP_TZ_BUS;
+}
+#else
+static inline bool msm_spi_fp_tz_bus(int bus_num)
+{
+	return false;
+}
+#endif
+
 #define SPI_MAX_BYTES_PER_WORD			(4)
 
 #define spi_ipc(log_ctx, print, dev, x...) do { \
@@ -1839,6 +1858,9 @@ static int msm_spi_setup(struct spi_device *spi)
 	u32              spi_ioc;
 	u32              spi_config;
 	u32              mask;
+
+	if (msm_spi_fp_tz_bus(spi->master->bus_num))
+		return 0;
 
 	if (spi->bits_per_word < 4 || spi->bits_per_word > 32) {
 		dev_err(&spi->dev, "%s: invalid bits_per_word %d\n",
