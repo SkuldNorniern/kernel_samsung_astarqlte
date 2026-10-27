@@ -47,6 +47,7 @@ enum {
 	POWER_SUPPLY_CHARGE_TYPE_TRICKLE,
 	POWER_SUPPLY_CHARGE_TYPE_FAST,
 	POWER_SUPPLY_CHARGE_TYPE_TAPER,
+	POWER_SUPPLY_CHARGE_TYPE_SLOW,		/* Samsung battery_v2 */
 };
 
 enum {
@@ -63,6 +64,9 @@ enum {
 	POWER_SUPPLY_HEALTH_WARM,
 	POWER_SUPPLY_HEALTH_COOL,
 	POWER_SUPPLY_HEALTH_HOT,
+	POWER_SUPPLY_HEALTH_UNDERVOLTAGE,	/* Samsung battery_v2 */
+	POWER_SUPPLY_HEALTH_OVERHEATLIMIT,	/* Samsung battery_v2 */
+	POWER_SUPPLY_HEALTH_MAX,		/* Samsung ext health base */
 };
 
 enum {
@@ -378,6 +382,8 @@ enum power_supply_property {
 	 * MODEL_NAME and SERIAL_NUMBER. Don't add below SERIAL_NUMBER.
 	 */
 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+	/* Samsung battery_v2 extension base: POWER_SUPPLY_EXT_PROP_* start here */
+	POWER_SUPPLY_PROP_MAX,
 };
 
 enum power_supply_type {
@@ -405,6 +411,9 @@ enum power_supply_type {
 	POWER_SUPPLY_TYPE_UFP,			/* Type-C UFP */
 	POWER_SUPPLY_TYPE_DFP,			/* Type-C DFP */
 	POWER_SUPPLY_TYPE_CHARGE_PUMP,		/* Charge Pump */
+	POWER_SUPPLY_TYPE_OTG,			/* OTG (Samsung battery_v2) */
+	POWER_SUPPLY_TYPE_POWER_SHARING,	/* power sharing cable (Samsung) */
+	POWER_SUPPLY_TYPE_MDOCK_TA,		/* mdock TA (Samsung) */
 };
 
 enum power_supply_usb_type {
