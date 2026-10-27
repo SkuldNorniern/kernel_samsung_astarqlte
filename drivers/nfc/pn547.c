@@ -32,6 +32,15 @@
 #include <linux/spinlock.h>
 #include "pn547.h"
 #include <linux/of_gpio.h>
+
+static bool pn547_fw_download_allowed(void)
+{
+	if (IS_ENABLED(CONFIG_NFC_PN547_ALLOW_FW_WRITE))
+		return true;
+
+	pr_warn_once("pn547: firmware download mode blocked (NFC_PN547_ALLOW_FW_WRITE is off)\n");
+	return false;
+}
 #include <linux/of_platform.h>
 #include <linux/clk.h>
 #include <linux/regulator/consumer.h>
@@ -248,6 +257,8 @@ long pn547_dev_ioctl(struct file *filp,
 		if (arg == 2) {
 			/* power on with firmware download (requires hw reset)
 			 */
+			if (!pn547_fw_download_allowed())
+				return -EPERM;
 			gpio_set_value_cansleep(pn547_dev->ven_gpio, 1);
 			gpio_set_value(pn547_dev->firm_gpio, 1);
 			usleep_range(4900, 5000);
@@ -663,33 +674,39 @@ static int pn547_probe(struct i2c_client *client, const struct i2c_device_id *id
 	atomic_set(&pn547_dev->irq_enabled, 0);
 
 
-	gpio_set_value(pn547_dev->ven_gpio, 1);
-	gpio_set_value(pn547_dev->firm_gpio, 1); /* add firmware pin */
-	usleep_range(4900, 5000);
-	gpio_set_value(pn547_dev->ven_gpio, 0);
-	usleep_range(4900, 5000);
-	gpio_set_value(pn547_dev->ven_gpio, 1);
-	usleep_range(4900, 5000);
-
-	for (addr = 0x2B; addr > 0x27; addr--) {
-		client->addr = addr;
-		addrcnt = 2;
-		do {
-			ret = i2c_master_send(client, tmp, 4);
-			if (ret > 0) {
-				NFC_LOG_INFO("i2c addr(0x%X), ret(%d)\n",
-					client->addr, ret);
-				pn547_dev->i2c_probe = ret;
-				break;
-			}
-		} while (addrcnt--);
-		if (ret > 0)
-			break;
-	}
-
-	if (ret <= 0) {
-		NFC_LOG_INFO("ret(%d), i2c_probe(%d)\n", ret, pn547_dev->i2c_probe);
+	if (!pn547_fw_download_allowed()) {
+		/* no download mode entry: keep the default address, skip the scan */
 		client->addr = 0x2B;
+		ret = 0;
+	} else {
+		gpio_set_value(pn547_dev->ven_gpio, 1);
+		gpio_set_value(pn547_dev->firm_gpio, 1); /* add firmware pin */
+		usleep_range(4900, 5000);
+		gpio_set_value(pn547_dev->ven_gpio, 0);
+		usleep_range(4900, 5000);
+		gpio_set_value(pn547_dev->ven_gpio, 1);
+		usleep_range(4900, 5000);
+
+		for (addr = 0x2B; addr > 0x27; addr--) {
+			client->addr = addr;
+			addrcnt = 2;
+			do {
+				ret = i2c_master_send(client, tmp, 4);
+				if (ret > 0) {
+					NFC_LOG_INFO("i2c addr(0x%X), ret(%d)\n",
+						client->addr, ret);
+					pn547_dev->i2c_probe = ret;
+					break;
+				}
+			} while (addrcnt--);
+			if (ret > 0)
+				break;
+		}
+
+		if (ret <= 0) {
+			NFC_LOG_INFO("ret(%d), i2c_probe(%d)\n", ret, pn547_dev->i2c_probe);
+			client->addr = 0x2B;
+		}
 	}
 	gpio_set_value(pn547_dev->ven_gpio, 0);
 	gpio_set_value(pn547_dev->firm_gpio, 0); /* add */

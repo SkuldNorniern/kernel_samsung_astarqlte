@@ -68,6 +68,16 @@ config NFC_NQ
           This is for i2c connected version. NCI protocol logic
           resides in the usermode and it has no other NFC dependencies.
 
+config NFC_PN547_ALLOW_FW_WRITE
+	bool "Allow PN547 firmware download mode"
+	depends on NFC_PN547
+	default n
+	help
+	  Entering firmware download mode (FIRM pin high on power-up, ioctl
+	  arg 2) lets the host reflash the NFC controller's firmware. It is
+	  refused with -EPERM unless this is set. Off by default. Normal
+	  power on/off and reads are not affected.
+
 config NFC_PN547
 	tristate "NXP PN547 NFC controller"
 	depends on I2C && GPIOLIB && OF
