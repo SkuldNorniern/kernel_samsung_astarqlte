@@ -8587,13 +8587,14 @@ fail_hw_cal:
 			return -1;
 		}
 
-		if (copy_from_user(&val, compat_ptr(reg_ioctl.val), 4)) {
+		if (copy_from_user(&nval, compat_ptr(reg_ioctl.val), sizeof(nval))) {
 			misc_info->work_state = NOTHING;
 			up(&misc_info->work_lock);
 			input_info(true, &misc_info->client->dev, "[zinitix_touch] error : copy_from_user(2)\n");
 			return -1;
 		}
 
+		val = (u16)nval;
 		if (write_reg(misc_info->client,
 			(u16)reg_ioctl.addr, val) != I2C_SUCCESS)
 			ret = -1;
