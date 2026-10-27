@@ -241,14 +241,15 @@ static void msm_set_micbias(bool state)
 	const char *str = "MIC BIAS External2";
 	int ret = 0;
 
-	if (hs_jack.card == NULL) {
-		pr_err("%s card is NULL\n", __func__);
-		return;
-	}
 	pr_info("%s : %s, state=%d\n", __func__, str, state);
 
 	mutex_lock(&jack_mutex);
 	card = hs_jack.card;
+	if (card == NULL) {
+		mutex_unlock(&jack_mutex);
+		pr_err("%s card is NULL\n", __func__);
+		return;
+	}
 	dapm = &card->dapm;
 
 	if (state)
