@@ -1,0 +1,139 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# Samsung battery_v2 framework, trimmed to the SM5705 PMIC path.
+# MUIC / CCIC / S2MM005 / SM5720 / MFC / LED dependent options are not
+# part of this port and are intentionally absent.
+
+config BATTERY_SAMSUNG
+	tristate "samsung battery driver"
+	help
+	 Say Y to include support for samsung battery driver
+	 This battery driver integrated all battery-related functions
+	 To see battery-related functions,
+	 refer to sec_charging_common.h
+
+config BATTERY_SAMSUNG_V2
+	tristate "samsung battery driver version 2"
+	default n
+	depends on BATTERY_SAMSUNG
+	help
+	 Say Y to include support for samsung battery driver
+	 This battery driver integrated all battery-related functions
+	 To see battery-related functions,
+	 refer to sec_charging_common.h
+
+config BATTERY_SAMSUNG_DATA_FILE
+	depends on BATTERY_SAMSUNG
+	string "samsung battery data file"
+	default "default_battery_data.h"
+	help
+	 Path to the battery data file.
+
+config SLOW_CHARGING_CURRENT_STANDARD
+	int "slow charging"
+	depends on BATTERY_SAMSUNG
+	default "1000"
+	help
+	 Value for standard of slow-charging.
+
+config BATTERY_SWELLING
+	bool "prevent battery swelling"
+	help
+	 Say Y to include support for prevent battery swelling
+
+config BATTERY_SWELLING_SELF_DISCHARGING
+	bool "prevent battery swelling with self discharging"
+	help
+	 Say Y to include support for prevent battery swelling with self discharging
+
+config BATTERY_CISD
+	bool "support for cisd"
+	help
+	 Say Y to include support for cisd
+	 cisd means cell internal short detection
+
+config BATTERY_AGE_FORECAST
+	tristate "battery age forecast"
+	default n
+	depends on BATTERY_SWELLING
+	help
+	  Say Y to use calc time to full function.
+
+config BATTERY_NOTIFIER
+	bool "battery notifier"
+	default n
+	help
+	  Say Y to enable battery notifier
+
+config SIOP_CHARGING_LIMIT_CURRENT
+	int "Siop charging limit current"
+	default 0
+	help
+	  set SIOP charging limit current.
+
+config DISABLE_SAVE_CAPACITY_MAX
+	bool "Disable to save capacity max in efs"
+	default n
+	depends on BATTERY_SAMSUNG
+	help
+		Say Y to include support to disable it
+		capacity_max is saved in /efs/Battery/batt_capacity_max
+		capacity_max is restored after boot up
+
+config STORE_MODE
+	bool "enable store mode"
+	default n
+	help
+	  Say Y to enable CONFIG_STORE_MODE
+
+config AFC_CHARGER_MODE
+	bool "afc charging support in sec battery driver"
+	default n
+	help
+	  Say Y to include support for sec afc charging support
+
+config SAMSUNG_LPM_MODE
+	bool "Off charging mode support in sec battery driver"
+	default n
+	help
+	  Say Y to include support for sec off charging support
+	  This value defined at bootloader.
+	  Before enable this feature,
+	  implemet power off charging in the bootloader.
+
+config SAMSUNG_BATTERY_ENG_TEST
+	bool "enable ENG mode for battery test"
+	default n
+	help
+	  Say Y to include support for battery test
+	  enable this feature only ENG mode
+	  this featuren must disabled user binary
+	  stability test etc..
+
+config SAMSUNG_BATTERY_FACTORY
+	bool "enable for factory test"
+	default n
+	help
+	  Say Y to include support for factory test
+	  enable this feature only factory mode
+	  this featuren must disabled user binary
+	  stability test etc..
+
+# Fuel Gauge
+
+config FUELGAUGE_SM5705
+	tristate "Siliconmitus SM5705 Fuel Gauge"
+	default n
+	depends on I2C
+	help
+	  SM5705 is fuel-gauge systems for lithium-ion (Li+) batteries
+	  in handheld and portable equipment. The SM5705 is configured
+	  to operate with a single lithium cell
+
+# Charger
+
+config CHARGER_SM5705
+	tristate "SM5705 battery charger support"
+	depends on BATTERY_SAMSUNG
+	help
+	  Say Y here to enable support for the SM5705 charger
