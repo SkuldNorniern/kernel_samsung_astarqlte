@@ -1227,8 +1227,10 @@ static int tdmb_probe(struct platform_device *pdev)
 	dmb_device = &pdev->dev;
 
 	ret = register_chrdev(TDMB_DEV_MAJOR, TDMB_DEV_NAME, &tdmb_ctl_fops);
-	if (ret < 0)
+	if (ret < 0) {
 		DPRINTK("register_chrdev(TDMB_DEV) failed!\n");
+		return ret;
+	}
 
 	tdmb_class = class_create(THIS_MODULE, TDMB_DEV_NAME);
 	if (IS_ERR(tdmb_class)) {
