@@ -3029,10 +3029,8 @@ int mmc_set_signal_voltage(struct mmc_host *host, int signal_voltage, u32 ocr)
 			pr_debug("%s: voltage switching failed with err %d\n",
 				mmc_hostname(host), err);
 			err = -EAGAIN;
-			goto power_cycle;
-		} else {
-			goto err_command;
 		}
+		goto power_cycle;
 	}
 
 	if (!mmc_host_is_spi(host) && (cmd.resp[0] & R1_ERROR)) {
