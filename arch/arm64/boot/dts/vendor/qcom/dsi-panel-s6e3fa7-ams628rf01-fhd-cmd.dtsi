@@ -1,0 +1,142 @@
+/*
+ * Samsung S6E3FA7 AMS628RF01 1080x2220 AMOLED, command mode, 4 lanes.
+ * Values from security-4.4.302 sdm660-sec-astarqlte-kor-r07.dts
+ * (ss_dsi_panel_S6E3FA7_AMS628RF01_FHD). Samsung ss_dsi keys dropped.
+ */
+
+&mdss_mdp {
+	dsi_panel_pwr_supply_s6e3fa7: dsi_panel_pwr_supply_s6e3fa7 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "wqhd-vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <32000>;
+			qcom,supply-disable-load = <80>;
+		};
+
+		qcom,panel-supply-entry@1 {
+			reg = <1>;
+			qcom,supply-name = "vdda-3p3";
+			qcom,supply-min-voltage = <3000000>;
+			qcom,supply-max-voltage = <3000000>;
+			qcom,supply-enable-load = <13200>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <10>;
+		};
+	};
+	dsi_s6e3fa7_ams628rf01_fhd_cmd: qcom,mdss_dsi_s6e3fa7_ams628rf01_fhd_cmd {
+		qcom,mdss-dsi-panel-name =
+				"s6e3fa7 ams628rf01 fhd command mode dsi panel";
+		qcom,mdss-dsi-panel-type = "dsi_cmd_mode";
+
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+
+		qcom,panel-supply-entries = <&dsi_panel_pwr_supply_s6e3fa7>;
+
+		qcom,mdss-dsi-panel-width = <1080>;
+		qcom,mdss-dsi-panel-height = <2220>;
+		qcom,mdss-dsi-panel-framerate = <60>;
+		qcom,mdss-dsi-bpp = <24>;
+		qcom,mdss-dsi-virtual-channel-id = <0>;
+		qcom,mdss-dsi-stream = <0>;
+		qcom,mdss-dsi-color-order = "rgb_swap_rgb";
+		qcom,mdss-dsi-underflow-color = <0xff>;
+		qcom,mdss-dsi-border-color = <0>;
+		qcom,mdss-dsi-pixel-packing = "loose";
+		qcom,mdss-dsi-traffic-mode = "burst_mode";
+		qcom,mdss-dsi-dma-trigger = "trigger_sw";
+		qcom,mdss-dsi-mdp-trigger = "none";
+
+		qcom,mdss-dsi-t-clk-pre = <0x35>;
+		qcom,mdss-dsi-t-clk-post = <0xe>;
+		qcom,mdss-dsi-panel-clockrate = <997000000>;
+		qcom,mdss-dsi-panel-timings-phy-v2 = [
+			25 1f 09 0a 06 03 04 a0
+			25 1f 09 0a 06 03 04 a0
+			25 1f 09 0a 06 03 04 a0
+			25 1f 09 0a 06 03 04 a0
+			25 1f 08 0a 06 03 04 a0
+		];
+
+		qcom,mdss-dsi-h-pulse-width = <24>;
+		qcom,mdss-dsi-h-back-porch = <36>;
+		qcom,mdss-dsi-h-front-porch = <96>;
+		qcom,mdss-dsi-h-sync-skew = <0>;
+		qcom,mdss-dsi-h-sync-pulse = <0>;
+		qcom,mdss-dsi-v-pulse-width = <2>;
+		qcom,mdss-dsi-v-back-porch = <14>;
+		qcom,mdss-dsi-v-front-porch = <4>;
+		qcom,mdss-dsi-h-left-border = <0>;
+		qcom,mdss-dsi-h-right-border = <0>;
+		qcom,mdss-dsi-v-top-border = <0>;
+		qcom,mdss-dsi-v-bottom-border = <0>;
+
+		qcom,mdss-dsi-bllp-eof-power-mode;
+		qcom,mdss-dsi-bllp-power-mode;
+
+		qcom,mdss-dsi-lane-0-state;
+		qcom,mdss-dsi-lane-1-state;
+		qcom,mdss-dsi-lane-2-state;
+		qcom,mdss-dsi-lane-3-state;
+
+		qcom,mdss-pan-physical-width-dimension = <67>;
+		qcom,mdss-pan-physical-height-dimension = <138>;
+
+		qcom,mdss-dsi-reset-sequence = <1 5>, <0 5>, <1 10>;
+		qcom,mdss-dsi-lp11-init;
+		qcom,mdss-dsi-init-delay-us = <1000>;
+		qcom,mdss-dsi-rx-eot-ignore;
+		qcom,mdss-dsi-tx-eot-append;
+		qcom,ulps-enabled;
+
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+		qcom,mdss-dsi-bl-min-level = <1>;
+		qcom,mdss-dsi-bl-max-level = <255>;
+		qcom,mdss-brightness-max-level = <255>;
+
+		qcom,mdss-dsi-te-check-enable;
+		qcom,mdss-dsi-te-using-te-pin;
+		qcom,mdss-dsi-te-pin-select = <1>;
+		qcom,mdss-dsi-te-dcs-command = <1>;
+		qcom,mdss-dsi-wr-mem-start = <0x2c>;
+		qcom,mdss-dsi-wr-mem-continue = <0x3c>;
+
+		qcom,mdss-dsi-on-command = [
+				05 01 00 00 14 00 02 11 00
+				29 01 00 00 00 00 02 35 00
+				29 01 00 00 00 00 03 f0 5a 5a
+				29 01 00 00 00 00 02 cc 5c
+				29 01 00 00 00 00 03 f0 a5 a5
+				29 01 00 00 00 00 03 f0 5a 5a
+				29 01 00 00 00 00 02 ed 44
+				29 01 00 00 00 00 03 f0 a5 a5
+				29 01 00 00 00 00 03 f0 5a 5a
+				29 01 00 00 00 00 0f f4 bb 23 19 3a 9f 0f 09 c0 00 b4 37 70 79 69
+				29 01 00 00 00 00 03 f0 a5 a5
+				29 01 00 00 00 00 03 f0 5a 5a
+				29 01 00 00 00 00 09 c5 09 10 c8 21 80 11 26 d4
+				29 01 00 00 00 00 03 f0 a5 a5
+				29 01 00 00 00 00 03 f0 5a 5a
+				29 01 00 00 00 00 22 ca 07 00 00 00 00 00 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80
+				29 01 00 00 00 00 03 b1 00 10
+				29 01 00 00 00 00 18 b5 19 dc 0a 01 34 67 9a cd 01 22 33 44 c0 00 09 99 33 13 01 11 10 00 00
+				29 01 00 00 00 00 02 f7 03
+				29 01 00 00 50 00 03 f0 a5 a5
+				05 01 00 00 00 00 02 2c 00
+				05 01 00 00 00 00 02 3c 00
+				05 01 00 00 00 00 02 29 00
+		];
+		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
+
+		qcom,mdss-dsi-off-command = [
+				05 01 00 00 00 00 02 28 00
+				05 01 00 00 78 00 02 10 00
+		];
+		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+	};
+};
