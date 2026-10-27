@@ -175,6 +175,16 @@ config WSA_MACRO
 config SOUND_CONTROL
 	tristate "SOUND_CONTROL"
 
+config SND_SOC_TFA98XX_ALLOW_MTP_WRITE
+	bool "Allow TFA98xx MTP (amp OTP) writes"
+	depends on SND_SOC_TFA9874
+	default n
+	help
+	  Writes to the amplifier MTP (calibration stored by cal=once,
+	  RE25/MTPEX, OTC schedule) are refused unless this is set. Off
+	  by default: MTP is non-volatile. DSP RAM loads and volatile
+	  calibration (cal without MTPOTC) are not affected.
+
 config SND_SOC_TFA9874
 	tristate "NXP Semiconductors TFA9874 audio amplifier"
 	depends on I2C

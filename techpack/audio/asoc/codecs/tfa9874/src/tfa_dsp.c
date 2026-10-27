@@ -769,11 +769,25 @@ void tfa98xx_key2(struct tfa_device *tfa, int lock)
 	reg_write(tfa, (tfa->tfa_family == 1) ? 0x40 :0x0F, 0);
 }
 
+static bool tfa_mtp_write_allowed(void)
+{
+	if (IS_ENABLED(CONFIG_SND_SOC_TFA98XX_ALLOW_MTP_WRITE))
+		return true;
+
+	pr_warn_once("%s: TFA98xx MTP write blocked (SND_SOC_TFA98XX_ALLOW_MTP_WRITE is off)\n",
+		     __func__);
+	return false;
+}
+
 enum Tfa98xx_Error tfa98xx_set_mtp(struct tfa_device *tfa, uint16_t value, uint16_t mask)
 {
 	unsigned short mtp_old, mtp_new;
 	int loop, status;
 	enum Tfa98xx_Error error;
+
+	/* single chokepoint for every MTP write (CIMTP), incl. MTPEX/OTC/RE25 */
+	if (!tfa_mtp_write_allowed())
+		return Tfa98xx_Error_Fail;
 
 	error = tfa98xx_get_mtp(tfa, &mtp_old);
 
@@ -2635,6 +2649,10 @@ enum Tfa98xx_Error tfaRunSpeakerCalibration(struct tfa_device *tfa)
 	/* return if there is no audio running */
 	if ((tfa->tfa_family == 2) && TFA_GET_BF(tfa, NOCLK))
 		return Tfa98xx_Error_NoClock;
+
+	/* cal=once: the chip writes the result to MTP, refuse before any unlock */
+	if (TFA_GET_BF(tfa, MTPOTC) == 1 && !tfa_mtp_write_allowed())
+		return Tfa98xx_Error_Fail;
 
 	/* When MTPOTC is set (cal=once) unlock key2 */
 	if (TFA_GET_BF(tfa, MTPOTC) == 1) {
