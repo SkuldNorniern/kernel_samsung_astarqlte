@@ -46,9 +46,51 @@
 #define DRIVER_NAME "fc8080_spi"
 
 unsigned long fc8080_spi;
-static u8 tx_data[32] __cacheline_aligned;
+/* command header (4) + bulk write payload (255) */
+#define FC8080_SPI_CMD_MAX	(4 + 255)
+/* largest single read: header + one 8 KiB MSC block */
+#define FC8080_SPI_XFER_MAX	(4 + 8192)
+
+static u8 tx_data[FC8080_SPI_CMD_MAX] __cacheline_aligned;
 
 static DEFINE_MUTEX(lock);
+
+/* Bounce buffers for SPI transfers. Callers hold lock. */
+static u8 xfer_tx[FC8080_SPI_XFER_MAX] __cacheline_aligned;
+static u8 xfer_rx[FC8080_SPI_XFER_MAX] __cacheline_aligned;
+
+/*
+ * Full-duplex transfer: tx_length command bytes, then rx_length bytes read
+ * back. Both directions go through the bounded bounce buffers above.
+ */
+static int fc8080_spi_xfer(struct spi_device *spi, u8 *txbuf, u16 tx_length,
+			u8 *rxbuf, u16 rx_length)
+{
+	struct spi_message message;
+	struct spi_transfer x;
+	u32 total = (u32)tx_length + rx_length;
+	s32 res;
+
+	if (total > FC8080_SPI_XFER_MAX)
+		return -EINVAL;
+
+	memcpy(xfer_tx, txbuf, tx_length);
+	memset(xfer_tx + tx_length, 0, rx_length);
+
+	spi_message_init(&message);
+	memset(&x, 0, sizeof(x));
+	spi_message_add_tail(&x, &message);
+
+	x.tx_buf = xfer_tx;
+	x.rx_buf = xfer_rx;
+	x.len = total;
+
+	res = spi_sync(spi, &message);
+	if (res == 0 && rx_length)
+		memcpy(rxbuf, xfer_rx + tx_length, rx_length);
+
+	return res;
+}
 
 int fc8080_spi_write_then_read(
 	struct spi_device *spi
@@ -57,25 +99,7 @@ int fc8080_spi_write_then_read(
 	, u8 *rxbuf
 	, u16 rx_length)
 {
-	s32 res;
-
-	struct spi_message message;
-	struct spi_transfer	x;
-
-	spi_message_init(&message);
-	memset(&x, 0, sizeof(x));
-
-	spi_message_add_tail(&x, &message);
-
-	x.tx_buf = txbuf;
-	x.rx_buf = txbuf;
-	x.len = tx_length + rx_length;
-
-	res = spi_sync(spi, &message);
-
-	memcpy(rxbuf, x.rx_buf + tx_length, rx_length);
-
-	return res;
+	return fc8080_spi_xfer(spi, txbuf, tx_length, rxbuf, rx_length);
 }
 
 int fc8080_spi_write_then_burstread(
@@ -85,23 +109,7 @@ int fc8080_spi_write_then_burstread(
 	, u8 *rxbuf
 	, u16 rx_length)
 {
-	s32 res;
-
-	struct spi_message	message;
-	struct spi_transfer	x;
-
-	spi_message_init(&message);
-	memset(&x, 0, sizeof(x));
-
-	spi_message_add_tail(&x, &message);
-
-	x.tx_buf = txbuf;
-	x.rx_buf = rxbuf;
-	x.len = tx_length + rx_length;
-
-	res = spi_sync(spi, &message);
-
-	return res;
+	return fc8080_spi_xfer(spi, txbuf, tx_length, rxbuf, rx_length);
 }
 
 static s32 spi_bulkread(HANDLE handle, u16 addr, u8 command, u8 *data,
@@ -131,6 +139,9 @@ static s32 spi_bulkwrite(HANDLE handle, u16 addr, u8 command, u8 *data,
 	s32 res = BBM_OK;
 	s32 i = 0;
 
+	if (length > FC8080_SPI_CMD_MAX - 4)
+		return BBM_NOK;
+
 	tx_data[0] = (u8) (addr & 0xff);
 	tx_data[1] = (u8) ((addr >> 8) & 0xff);
 	tx_data[2] = (u8) ((command & 0xfc) | CHIPID);
@@ -154,6 +165,9 @@ static s32 spi_dataread(HANDLE handle, u16 addr, u8 command, u8 *data,
 			u32 length)
 {
 	s32 res = BBM_OK;
+
+	if (length > FC8080_SPI_XFER_MAX - 4)
+		return BBM_NOK;
 
 	tx_data[0] = (u8) (addr & 0xff);
 	tx_data[1] = (u8) ((addr >> 8) & 0xff);
