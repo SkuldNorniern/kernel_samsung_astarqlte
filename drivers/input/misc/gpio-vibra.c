@@ -47,25 +47,37 @@ struct gpio_vibrator {
 	u16 level;		/* force-feedback magnitude */
 	bool timed_on;		/* timed_output / led activation */
 	u32 duration_ms;	/* led "duration" attribute */
+	spinlock_t lock;	/* protects level and timed_on */
 };
 
 static void gpio_vibrator_play_work(struct work_struct *work)
 {
 	struct gpio_vibrator *vib = container_of(work, struct gpio_vibrator,
 						 play_work);
+	unsigned long flags;
+	bool on;
 
-	gpio_set_value_cansleep(vib->gpio,
-				(vib->level || vib->timed_on) ? 1 : 0);
+	spin_lock_irqsave(&vib->lock, flags);
+	on = vib->level || vib->timed_on;
+	spin_unlock_irqrestore(&vib->lock, flags);
+
+	gpio_set_value_cansleep(vib->gpio, on ? 1 : 0);
 }
 
 static int gpio_vibrator_play_effect(struct input_dev *dev, void *data,
 				     struct ff_effect *effect)
 {
 	struct gpio_vibrator *vib = input_get_drvdata(dev);
+	unsigned long flags;
+	u16 level;
 
-	vib->level = effect->u.rumble.strong_magnitude;
-	if (!vib->level)
-		vib->level = effect->u.rumble.weak_magnitude;
+	level = effect->u.rumble.strong_magnitude;
+	if (!level)
+		level = effect->u.rumble.weak_magnitude;
+
+	spin_lock_irqsave(&vib->lock, flags);
+	vib->level = level;
+	spin_unlock_irqrestore(&vib->lock, flags);
 
 	schedule_work(&vib->play_work);
 
@@ -76,9 +88,16 @@ static void gpio_vibrator_close(struct input_dev *input)
 {
 	struct gpio_vibrator *vib = input_get_drvdata(input);
 
+	unsigned long flags;
+	bool on;
+
 	cancel_work_sync(&vib->play_work);
+	spin_lock_irqsave(&vib->lock, flags);
 	vib->level = 0;
-	gpio_set_value_cansleep(vib->gpio, vib->timed_on ? 1 : 0);
+	on = vib->timed_on;
+	spin_unlock_irqrestore(&vib->lock, flags);
+
+	gpio_set_value_cansleep(vib->gpio, on ? 1 : 0);
 }
 
 static void gpio_vibrator_cancel_work(void *data)
@@ -95,7 +114,11 @@ static enum hrtimer_restart gpio_vibrator_stop_timer(struct hrtimer *timer)
 	struct gpio_vibrator *vib = container_of(timer, struct gpio_vibrator,
 						 stop_timer);
 
+	unsigned long flags;
+
+	spin_lock_irqsave(&vib->lock, flags);
 	vib->timed_on = false;
+	spin_unlock_irqrestore(&vib->lock, flags);
 	schedule_work(&vib->play_work);
 
 	return HRTIMER_NORESTART;
@@ -104,8 +127,11 @@ static enum hrtimer_restart gpio_vibrator_stop_timer(struct hrtimer *timer)
 /* ms > 0: run for ms; ms == 0: stop; ms < 0: run until stopped. */
 static void gpio_vibrator_timed_start(struct gpio_vibrator *vib, int ms)
 {
+	unsigned long flags;
+
 	hrtimer_cancel(&vib->stop_timer);
 
+	spin_lock_irqsave(&vib->lock, flags);
 	if (ms == 0) {
 		vib->timed_on = false;
 	} else {
@@ -114,6 +140,7 @@ static void gpio_vibrator_timed_start(struct gpio_vibrator *vib, int ms)
 			hrtimer_start(&vib->stop_timer, ms_to_ktime(ms),
 				      HRTIMER_MODE_REL);
 	}
+	spin_unlock_irqrestore(&vib->lock, flags);
 
 	schedule_work(&vib->play_work);
 }
@@ -273,6 +300,7 @@ static int gpio_vibrator_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	vib->duration_ms = GPIO_VIBRATOR_DEF_MS;
+	spin_lock_init(&vib->lock);
 	INIT_WORK(&vib->play_work, gpio_vibrator_play_work);
 	hrtimer_init(&vib->stop_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	vib->stop_timer.function = gpio_vibrator_stop_timer;
