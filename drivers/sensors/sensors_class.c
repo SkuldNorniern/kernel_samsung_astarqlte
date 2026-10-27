@@ -613,8 +613,6 @@ static int __init sensors_init(void)
 		return PTR_ERR(sensors_class);
 #ifdef CONFIG_MACH_ASUS_SDM660
 	sensors_class->dev_groups = sensor_groups;
-#else
-	sensors_class->dev_attrs = sensors_class_attrs;
 #endif
 
 	return 0;
