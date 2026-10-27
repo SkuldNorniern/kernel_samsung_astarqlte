@@ -78,6 +78,26 @@ extern int get_lcd_attached(char *mode);
 
 #define GLOVE_MODE
 
+/* Samsung keycodes that are not in this tree's uapi header (values as in stock 4.4) */
+#ifndef KEY_RECENT
+#define KEY_RECENT			254
+#endif
+#ifndef KEY_DUMMY_HOME
+#define KEY_DUMMY_MENU			251
+#define KEY_DUMMY_HOME			252
+#define KEY_DUMMY_BACK			253
+#endif
+#ifndef KEY_BLACK_UI_GESTURE
+#define KEY_BLACK_UI_GESTURE		0x1c7
+#endif
+/* SW_GLOVE 0x0f would clash with SW_PEN_INSERTED in this tree */
+#ifndef SW_GLOVE
+#define SW_GLOVE			0x15
+#endif
+#ifndef ABS_MT_PALM
+#define ABS_MT_PALM			0x3e
+#endif
+
 #define MAX_FW_PATH 255
 #define TSP_FW_FILENAME "zinitix_fw.bin"
 
