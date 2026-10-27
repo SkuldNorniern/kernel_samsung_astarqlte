@@ -521,7 +521,11 @@ int s3fwrn5_fw_recv_frame(struct nci_dev *ndev, struct sk_buff *skb)
 	struct s3fwrn5_info *info = nci_get_drvdata(ndev);
 	struct s3fwrn5_fw_info *fw_info = &info->fw_info;
 
-	BUG_ON(fw_info->rsp);
+	if (fw_info->rsp) {
+		pr_err("%s: previous fw response not consumed, dropping frame\n", __func__);
+		kfree_skb(skb);
+		return -EBUSY;
+	}
 
 	fw_info->rsp = skb;
 
