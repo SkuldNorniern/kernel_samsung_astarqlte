@@ -17,19 +17,7 @@
 
 #include <linux/errno.h>
 
-enum sec_param_index {
-	param_index_wireless_charging_mode = 0,
-};
-
-static inline int sec_set_param(enum sec_param_index index, void *value)
-{
-	return -ENODEV;
-}
-
-static inline int sec_get_param(enum sec_param_index index, void *value)
-{
-	return -ENODEV;
-}
+#include <linux/sec_param.h>
 
 /* boot-mode query from the sec_bsp code that is not ported yet */
 static inline unsigned int is_boot_recovery(void)
