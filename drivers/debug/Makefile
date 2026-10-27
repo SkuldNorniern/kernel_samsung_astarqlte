@@ -11,6 +11,3 @@ obj-$(CONFIG_SEC_DEBUG_DOUBLE_FREE) += sec_debug-dfd.o
 obj-$(CONFIG_SEC_DEBUG_SUMMARY) += sec_debug_summary.o
 obj-$(CONFIG_SEC_NAD) += sec_nad.o
 
-
-# smem is device memory: gcc >= 5 merges stores into unaligned ones that fault there
-ccflags-y += -mstrict-align

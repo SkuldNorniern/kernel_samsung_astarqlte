@@ -39,6 +39,9 @@ ifeq ($(cc-name),clang)
 # TODO: revert when this is fixed in LLVM.
 KBUILD_CFLAGS	+= -mno-implicit-float
 else
+# qcom/samsung drivers write structs into ioremapped smem (device memory);
+# gcc >= 5 merges those stores into unaligned ones, which fault there
+KBUILD_CFLAGS	+= -mstrict-align
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 endif
 KBUILD_CFLAGS	+= $(lseinstr)
