@@ -1475,6 +1475,10 @@ static int _parse_battery_node_propertys(struct device *dev, struct device_node 
 		
 		pdata->charging_current =
 			kzalloc(sizeof(sec_charging_current_t) * SEC_BATTERY_CABLE_MAX,	GFP_KERNEL);
+		if (!pdata->charging_current) {
+			of_node_put(np);
+			return -ENOMEM;
+		}
 
 		for (i = 0; i < SEC_BATTERY_CABLE_MAX; i++) {
 			pdata->charging_current[i].input_current_limit = (unsigned int)input_current;
