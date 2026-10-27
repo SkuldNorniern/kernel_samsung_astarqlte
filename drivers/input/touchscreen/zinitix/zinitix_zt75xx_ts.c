@@ -4294,7 +4294,8 @@ static void run_dnd_read_all(void *device_data)
 	get_raw_data(info, (u8 *)raw_data->dnd_data, 1);
 	ts_set_touchmode(TOUCH_POINT_MODE);
 
-	all_cmdbuff_size = info->cap_info.x_node_num * info->cap_info.y_node_num * 6;
+	/* s16 "%d," is at most 7 chars ("-32768,"), plus NUL */
+	all_cmdbuff_size = info->cap_info.x_node_num * info->cap_info.y_node_num * 7 + 1;
 	all_cmdbuff = kzalloc(all_cmdbuff_size, GFP_KERNEL);
 	if (!all_cmdbuff) {
 		ret = -ENOMEM;
@@ -4303,7 +4304,7 @@ static void run_dnd_read_all(void *device_data)
 
 	for(i = 0; i < info->cap_info.x_node_num; i++) {
 		for(j = 0; j < info->cap_info.y_node_num; j++) {
-			sprintf(buff, "%u,", raw_data->dnd_data[i * info->cap_info.y_node_num + j]);
+			sprintf(buff, "%d,", raw_data->dnd_data[i * info->cap_info.y_node_num + j]);
 			strcat(all_cmdbuff, buff);
 		}
 	}
