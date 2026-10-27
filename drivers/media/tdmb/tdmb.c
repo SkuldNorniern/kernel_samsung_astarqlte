@@ -386,10 +386,9 @@ static int tdmb_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	vma->vm_flags |= VM_RESERVED;
 	size = vma->vm_end - vma->vm_start;
-	/* the ring is always mapped at its full size, so the vma must match */
-	if (size != TDMB_RING_BUFFER_MAPPING_SIZE) {
-		DPRINTK("bad mapping size : %lx\n", size);
-		return -EINVAL;
+	if (size > TDMB_RING_BUFFER_MAPPING_SIZE) {
+		DPRINTK("over size given : %lx\n", size);
+		return -EAGAIN;
 	}
 	DPRINTK("size given : %lx\n", size);
 
@@ -413,7 +412,8 @@ static int tdmb_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	pfn = virt_to_phys(ts_ring) >> PAGE_SHIFT;
 
-	if (remap_pfn_range(vma, vma->vm_start, pfn, size, vma->vm_page_prot))
+	if (remap_pfn_range(vma, vma->vm_start, pfn, vma->vm_end - vma->vm_start,
+			    vma->vm_page_prot))
 		return -EAGAIN;
 
 	DPRINTK("succeeded\n");
