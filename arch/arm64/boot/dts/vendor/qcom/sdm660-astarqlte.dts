@@ -35,14 +35,22 @@
 
 &tlmm {
 	/*
-	 * PCAL6524 expander reset line. Held high (out of reset) from boot,
-	 * the same as the stock expander_reset_active pinctrl state.
+	 * PCAL6524 expander reset line, held high (out of reset) as in stock
+	 * expander_reset_active. A gpio-hog here makes the tlmm gpiochip defer
+	 * forever on 4.19 (the hog asks for the pinctrl that is still probing).
 	 */
-	pcal6524_reset {
-		gpio-hog;
-		gpios = <33 0>;
-		output-high;
-		line-name = "pcal6524-reset";
+	expander_reset_active: expander_reset_active {
+		mux {
+			pins = "gpio33";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio33";
+			drive-strength = <2>;
+			bias-disable;
+			output-high;
+		};
 	};
 
 	i2c_23_pinctrl: i2c_23_pinctrl {
@@ -186,6 +194,8 @@
 		pcal6524: gpio-expander@22 {
 			compatible = "nxp,pcal6524";
 			reg = <0x22>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&expander_reset_active>;
 			gpio-controller;
 			#gpio-cells = <2>;
 		};
