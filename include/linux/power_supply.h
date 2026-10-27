@@ -384,6 +384,7 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
 	/* Samsung battery_v2 extension base: POWER_SUPPLY_EXT_PROP_* start here */
 	POWER_SUPPLY_PROP_MAX,
+	POWER_SUPPLY_EXT_PROP_MAX = POWER_SUPPLY_PROP_MAX + 256,
 };
 
 enum power_supply_type {
