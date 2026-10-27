@@ -1185,13 +1185,17 @@
 	speaker-amps = <&speaker_amp>;
 };
 
+/* stock r07 bt_wcn3990: chip-pwd on bob pin2 (0x2a4). Other supplies and clocks match 4.19 dtsi. */
+&bluetooth {
+	qca,bt-chip-pwd-supply = <&pm660l_bob_pin2>;
+};
+
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: sm5705 usbldo,
  * not yet: dfps_data_mem,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
- * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry), usb-notifier, ss_plog, sec_debug/tima regions,
- * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
+ * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry), usb-notifier, ss_plog, sec_debug/tima regions, /chosen (stdout-path, bootargs), input_booster,
  */
 
 /*
