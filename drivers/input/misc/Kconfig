@@ -347,6 +347,7 @@ config INPUT_WISTRON_BTNS
 	select INPUT_POLLDEV
 	select INPUT_SPARSEKMAP
 	select NEW_LEDS
+	select LEDS_CLASS
 	select CHECK_SIGNATURE
 	help
 	  Say Y here for support of Wistron laptop button interfaces, used on
@@ -604,6 +605,7 @@ config INPUT_GPIO_VIBRA
 	tristate "GPIO vibrator support"
 	depends on GPIOLIB && OF
 	select ANDROID_TIMED_OUTPUT
+	select LEDS_CLASS
 	help
 	  Say Y here to enable support for a vibration motor that is
 	  switched on and off by a single GPIO (motor-en). The GPIO

@@ -11,7 +11,9 @@
  *    motor on, zero turns it off;
  *  - timed_output class (/sys/class/timed_output/vibrator/enable), as used
  *    by the stock Samsung vibrator HAL: N > 0 runs for N ms, 0 stops,
- *    -1 runs until stopped.
+ *    -1 runs until stopped;
+ *  - LED class (/sys/class/leds/vibrator/{activate,duration,state}), as
+ *    used by LineageOS style vibrator HALs.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -22,6 +24,7 @@
 #include <linux/hrtimer.h>
 #include <linux/input.h>
 #include <linux/kernel.h>
+#include <linux/leds.h>
 #include <linux/module.h>
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
@@ -31,15 +34,19 @@
 #include "../../staging/android/timed_output.h"
 
 #define GPIO_VIBRATOR_NAME	"gpio-vibrator"
+#define GPIO_VIBRATOR_DEF_MS	15000
+#define GPIO_VIBRATOR_MAX_MS	15000
 
 struct gpio_vibrator {
 	struct input_dev *input;
 	struct work_struct play_work;
 	struct hrtimer stop_timer;
 	struct timed_output_dev tdev;
+	struct led_classdev cdev;
 	int gpio;
 	u16 level;		/* force-feedback magnitude */
 	bool timed_on;		/* timed_output / led activation */
+	u32 duration_ms;	/* led "duration" attribute */
 };
 
 static void gpio_vibrator_play_work(struct work_struct *work)
@@ -135,6 +142,102 @@ static void gpio_vibrator_unregister_timed(void *data)
 	timed_output_dev_unregister(data);
 }
 
+static ssize_t duration_show(struct device *dev, struct device_attribute *attr,
+			     char *buf)
+{
+	struct led_classdev *cdev = dev_get_drvdata(dev);
+	struct gpio_vibrator *vib = container_of(cdev, struct gpio_vibrator,
+						 cdev);
+
+	return sprintf(buf, "%u\n", vib->duration_ms);
+}
+
+static ssize_t duration_store(struct device *dev,
+			      struct device_attribute *attr,
+			      const char *buf, size_t count)
+{
+	struct led_classdev *cdev = dev_get_drvdata(dev);
+	struct gpio_vibrator *vib = container_of(cdev, struct gpio_vibrator,
+						 cdev);
+	u32 val;
+	int ret;
+
+	ret = kstrtou32(buf, 0, &val);
+	if (ret < 0)
+		return ret;
+
+	/* 0 is a NOP, as on the qpnp vibrator-ldo led */
+	if (val == 0)
+		return count;
+
+	if (val > GPIO_VIBRATOR_MAX_MS)
+		val = GPIO_VIBRATOR_MAX_MS;
+
+	vib->duration_ms = val;
+
+	return count;
+}
+static DEVICE_ATTR_RW(duration);
+
+static ssize_t activate_show(struct device *dev, struct device_attribute *attr,
+			     char *buf)
+{
+	struct led_classdev *cdev = dev_get_drvdata(dev);
+	struct gpio_vibrator *vib = container_of(cdev, struct gpio_vibrator,
+						 cdev);
+
+	return sprintf(buf, "%d\n", vib->timed_on ? 1 : 0);
+}
+
+static ssize_t activate_store(struct device *dev,
+			      struct device_attribute *attr,
+			      const char *buf, size_t count)
+{
+	struct led_classdev *cdev = dev_get_drvdata(dev);
+	struct gpio_vibrator *vib = container_of(cdev, struct gpio_vibrator,
+						 cdev);
+	u32 val;
+	int ret;
+
+	ret = kstrtou32(buf, 0, &val);
+	if (ret < 0)
+		return ret;
+
+	if (val != 0 && val != 1)
+		return count;
+
+	gpio_vibrator_timed_start(vib, val ? vib->duration_ms : 0);
+
+	return count;
+}
+static DEVICE_ATTR_RW(activate);
+
+static ssize_t state_show(struct device *dev, struct device_attribute *attr,
+			  char *buf)
+{
+	struct led_classdev *cdev = dev_get_drvdata(dev);
+	struct gpio_vibrator *vib = container_of(cdev, struct gpio_vibrator,
+						 cdev);
+
+	return sprintf(buf, "%d\n", vib->timed_on ? 1 : 0);
+}
+
+static ssize_t state_store(struct device *dev, struct device_attribute *attr,
+			   const char *buf, size_t count)
+{
+	/* Nothing to do: state follows activate, as on the qpnp led */
+	return count;
+}
+static DEVICE_ATTR_RW(state);
+
+static struct attribute *gpio_vibrator_led_attrs[] = {
+	&dev_attr_activate.attr,
+	&dev_attr_duration.attr,
+	&dev_attr_state.attr,
+	NULL,
+};
+ATTRIBUTE_GROUPS(gpio_vibrator_led);
+
 static int gpio_vibrator_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -164,6 +267,7 @@ static int gpio_vibrator_probe(struct platform_device *pdev)
 	if (!vib->input)
 		return -ENOMEM;
 
+	vib->duration_ms = GPIO_VIBRATOR_DEF_MS;
 	INIT_WORK(&vib->play_work, gpio_vibrator_play_work);
 	hrtimer_init(&vib->stop_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	vib->stop_timer.function = gpio_vibrator_stop_timer;
@@ -204,6 +308,14 @@ static int gpio_vibrator_probe(struct platform_device *pdev)
 				       &vib->tdev);
 	if (err)
 		return err;
+
+	vib->cdev.name = "vibrator";
+	vib->cdev.groups = gpio_vibrator_led_groups;
+	err = devm_led_classdev_register(dev, &vib->cdev);
+	if (err) {
+		dev_err(dev, "failed to register vibrator led: %d\n", err);
+		return err;
+	}
 
 	platform_set_drvdata(pdev, vib);
 
