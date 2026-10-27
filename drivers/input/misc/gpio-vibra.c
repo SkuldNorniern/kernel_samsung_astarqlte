@@ -137,6 +137,11 @@ static int gpio_vibrator_tdev_get_time(struct timed_output_dev *tdev)
 	return ktime_to_ms(hrtimer_get_remaining(&vib->stop_timer));
 }
 
+static void gpio_vibrator_unregister_input(void *data)
+{
+	input_unregister_device(data);
+}
+
 static void gpio_vibrator_unregister_timed(void *data)
 {
 	timed_output_dev_unregister(data);
@@ -295,6 +300,10 @@ static int gpio_vibrator_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to register input device: %d\n", err);
 		return err;
 	}
+	err = devm_add_action_or_reset(dev, gpio_vibrator_unregister_input,
+				       vib->input);
+	if (err)
+		return err;
 
 	vib->tdev.name = "vibrator";
 	vib->tdev.enable = gpio_vibrator_tdev_enable;
