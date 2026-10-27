@@ -323,7 +323,9 @@ int sm5705_irq_init(struct sm5705_dev *sm5705)
 
 void sm5705_irq_exit(struct sm5705_dev *sm5705)
 {
- if (sm5705->irq)
-     free_irq(sm5705->irq, sm5705);
+ /* irq is only requested when irq_gpio is set (see sm5705_irq_init) */
+ if (!sm5705->irq_gpio)
+     return;
+ free_irq(sm5705->irq, sm5705);
 }
 
