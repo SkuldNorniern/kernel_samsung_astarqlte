@@ -963,6 +963,18 @@
 	};
 };
 
+&i2c_7 {
+	/* stock tfa98xx node: i2c@c1b7000 (BLSP2 QUP3), pins gpio26/27 */
+	status = "okay";
+
+	speaker_amp: tfa98xx@34 {
+		compatible = "nxp,tfa98xx";
+		reg = <0x34>;
+		/* stock has no reset/irq gpio; stock firmware name is Tfa9872.cnt */
+		nxp,firmware-name = "Tfa9872.cnt";
+	};
+};
+
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: sm5705 muic (muic-sm5705@25), sm5705 usbldo,
