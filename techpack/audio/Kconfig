@@ -94,6 +94,16 @@ config SND_SOC_QCS405
 	tristate "SND_SOC_QCS405"
 config SND_SOC_QDSP6V2
 	tristate "SND_SOC_QDSP6V2"
+config SEC_SND_ADAPTATION
+	tristate "Samsung ADSP sound adaptation"
+	depends on SND_SOC_QDSP6V2
+	default n
+	help
+	  Samsung ADSP sound-effect controls (ASM pp parameters: sound alive,
+	  play speed, adaptation sound, balance, myspace, sound boost,
+	  upscaler, SB rotation). Maxim DSM, TFADSP and voice paths are not
+	  included.
+
 config SND_SOC_SDM660_CDC
 	tristate "SND_SOC_SDM660_CDC"
 config SND_SOC_SDM660
