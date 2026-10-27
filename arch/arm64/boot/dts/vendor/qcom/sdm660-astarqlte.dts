@@ -33,6 +33,30 @@
 };
 
 &tlmm {
+	/*
+	 * PCAL6524 expander reset line. Held high (out of reset) from boot,
+	 * the same as the stock expander_reset_active pinctrl state.
+	 */
+	pcal6524_reset {
+		gpio-hog;
+		gpios = <33 0>;
+		output-high;
+		line-name = "pcal6524-reset";
+	};
+
+	i2c_23_pinctrl: i2c_23_pinctrl {
+		mux {
+			pins = "gpio52", "gpio51";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio52", "gpio51";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+
 	tsp_int {
 		tsp_int_active: tsp_int_active {
 			mux {
@@ -65,6 +89,27 @@
 };
 
 &soc {
+	/*
+	 * Stock i2c@23 (i2c-gpio, SDA = gpio52, SCL = gpio51). The PCAL6524
+	 * expander and everything behind it hangs off this bus.
+	 */
+	i2c-gpio-23 {
+		compatible = "i2c-gpio";
+		gpios = <&tlmm 52 0 &tlmm 51 0>;
+		i2c-gpio,delay-us = <2>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c_23_pinctrl>;
+
+		pcal6524: gpio-expander@22 {
+			compatible = "nxp,pcal6524";
+			reg = <0x22>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+	};
+
 	tsp_ldo_en {
 		compatible = "regulator-fixed";
 		regulator-name = "tsp_ldo_en";
@@ -215,7 +260,7 @@
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
- * not yet: sm5705 (charger, fuel gauge, muic, fled, rgb), pcal6524 expander,
+ * not yet: sm5705 (charger, fuel gauge, muic, fled, rgb),
  * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
  * not yet: audio (dbmdx, sec_jack, q6audio),
  * not yet: camera flash, vibrator, tdmb, battery/cable-info, thermistors,
