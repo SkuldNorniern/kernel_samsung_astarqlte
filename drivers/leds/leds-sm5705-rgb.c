@@ -933,9 +933,8 @@ static inline int _register_led_commonclass_dev(struct device *dev,
 	return 0;
 
 led_classdev_register_err:
-	do {
+	while (i--)
 		led_classdev_unregister(&sm5705_rgb->led[i]);
-	} while (--i);
 
 	return ret;
 }
