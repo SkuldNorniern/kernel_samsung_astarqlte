@@ -55,6 +55,7 @@ struct sm5705_fled_info {
 
 	struct sm5705_fled_platform_data *pdata;
 	struct device *rear_fled_dev;
+	struct led_classdev torch_cdev;
 
 	/* for Flash VBUS check */
 	struct workqueue_struct *wqueue;
@@ -893,6 +894,30 @@ static DEVICE_ATTR(rear_flash_2, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH, sm5705
  * SM5705 Flash-LED device driver management functions
  */
 
+/**
+ * leds class "flashlight": on/off torch, same current as rear_flash value 1
+ */
+#define TORCH_ON_CURRENT_MA	60
+
+static int sm5705_torch_brightness_set(struct led_classdev *led_cdev, enum led_brightness brightness)
+{
+	struct sm5705_fled_info *sm5705_fled = container_of(led_cdev, struct sm5705_fled_info, torch_cdev);
+	int index = REAR_FLASH_INDEX;
+	int ret;
+
+	mutex_lock(&lock);
+	if (brightness == LED_OFF) {
+		assistive_light[index] = false;
+		ret = sm5705_fled_turn_off(sm5705_fled, index);
+	} else {
+		assistive_light[index] = true;
+		ret = sm5705_fled_turn_on_torch(sm5705_fled, index, TORCH_ON_CURRENT_MA);
+	}
+	mutex_unlock(&lock);
+
+	return ret;
+}
+
 #ifdef CONFIG_OF
 static int sm5705_fled_parse_dt(struct sm5705_dev *sm5705, struct sm5705_fled_platform_data *pdata)
 {
@@ -1142,6 +1167,15 @@ static int sm5705_led_probe(struct platform_device *pdev)
 		goto fled_rear_device_err2;
     }
 #endif
+	sm5705_fled->torch_cdev.name = "flashlight";
+	sm5705_fled->torch_cdev.max_brightness = 1;
+	sm5705_fled->torch_cdev.brightness_set_blocking = sm5705_torch_brightness_set;
+	ret = led_classdev_register(dev, &sm5705_fled->torch_cdev);
+	if (ret < 0) {
+		dev_err(dev, "%s: fail to register flashlight led class device\n", __func__);
+		goto fled_rear_device_err;
+	}
+
 	pr_err("%s: Probe done.\n", __func__);
 
 	return 0;
@@ -1175,6 +1209,7 @@ static int sm5705_led_remove(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	int i;
 
+	led_classdev_unregister(&sm5705_fled->torch_cdev);
 	device_remove_file(sm5705_fled->rear_fled_dev, &dev_attr_rear_flash);
 #if defined(CONFIG_DUAL_LEDS_FLASH)
 	device_remove_file(sm5705_fled->rear_fled_dev, &dev_attr_rear_flash_2);
