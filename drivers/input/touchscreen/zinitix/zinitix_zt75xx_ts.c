@@ -7172,6 +7172,7 @@ static void set_touchable_area(void *device_data)
 		zinitix_bit_set(m_optional_mode.select_mode.flag, DEF_OPTIONAL_MODE_TOUCHABLE_AREA);
 	else
 		zinitix_bit_clr(m_optional_mode.select_mode.flag, DEF_OPTIONAL_MODE_TOUCHABLE_AREA);
+	bt532_set_optional_mode(info, true);
 	
 	snprintf(buff, sizeof(buff), "%s", "OK");
 	sec->cmd_state = SEC_CMD_STATUS_OK;
@@ -7373,6 +7374,7 @@ static void dead_zone_enable(void *device_data)
 		zinitix_bit_clr(m_optional_mode.select_mode.flag, DEF_OPTIONAL_MODE_EDGE_SELECT);
 	else //factory
 		zinitix_bit_set(m_optional_mode.select_mode.flag, DEF_OPTIONAL_MODE_EDGE_SELECT);
+	bt532_set_optional_mode(info, true);
 
 	snprintf(buff, sizeof(buff), "dead_zone %s", val ? "disable" : "enable");
 	sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
@@ -7578,6 +7580,8 @@ static void glove_mode(void *device_data)
 			zinitix_bit_set(m_optional_mode.select_mode.flag, DEF_OPTIONAL_MODE_SENSITIVE_BIT);
 		else
 			zinitix_bit_clr(m_optional_mode.select_mode.flag, DEF_OPTIONAL_MODE_SENSITIVE_BIT);
+
+		bt532_set_optional_mode(info, true);
 
 		snprintf(buff, sizeof(buff), "%s", "OK");
 		sec->cmd_state = SEC_CMD_STATUS_OK;
