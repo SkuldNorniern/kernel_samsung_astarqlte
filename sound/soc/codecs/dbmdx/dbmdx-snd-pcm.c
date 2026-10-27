@@ -546,6 +546,7 @@ static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
 	flush_workqueue(prtd->dbmdx_pcm_workq);
 	usleep_range(10000, 11000);
 	destroy_workqueue(prtd->dbmdx_pcm_workq);
+	del_timer_sync(&prtd->timer);
 	kfree(prtd);
 	prtd = NULL;
 
