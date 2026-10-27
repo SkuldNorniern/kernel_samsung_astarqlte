@@ -320,3 +320,12 @@ config GET_FRONT_MODULE_ID
 	help
 	  Copies the front camera module id from the eeprom map into the
 	  camera sysfs (front_moduleid).
+
+config MSM_CAMERA_ALLOW_CHIP_WRITE
+	bool "Allow persistent camera chip writes (eeprom/OTP program, OIS flash)"
+	depends on MSMB_CAMERA
+	default n
+	help
+	  Off by default. When off, eeprom memory-map writes and OIS firmware
+	  download return -EPERM. Reads still work. Enabling this can brick a
+	  camera eeprom or OIS part; only turn it on for bench work.

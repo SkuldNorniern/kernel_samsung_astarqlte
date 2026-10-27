@@ -15,6 +15,7 @@
 
 #include <linux/module.h>
 #include <linux/firmware.h>
+#include "msm_camera_guard.h"
 #include "msm_sd.h"
 #include "msm_ois.h"
 #include "msm_cci.h"
@@ -71,6 +72,9 @@ static int32_t msm_ois_download(struct msm_ois_ctrl_t *o_ctrl)
 	char name_coeff[MAX_SENSOR_NAME] = {0};
 	struct device *dev = &(o_ctrl->pdev->dev);
 	enum msm_camera_i2c_reg_addr_type save_addr_type;
+
+	if (!msm_camera_chip_write_allowed(__func__))
+		return -EPERM;
 
 	CDBG("Enter\n");
 	save_addr_type = o_ctrl->i2c_client.addr_type;

@@ -19,6 +19,7 @@
 #include "msm_cci.h"
 #include "msm_eeprom.h"
 #include "../msm_camera_sysfs.h"
+#include "msm_camera_guard.h"
 
 #undef CDBG
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
@@ -406,6 +407,10 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 		for (i = 0; i < eeprom_map->memory_map_size; i++) {
 			switch (eeprom_map->mem_settings[i].i2c_operation) {
 			case MSM_CAM_WRITE: {
+				if (!msm_camera_chip_write_allowed(__func__)) {
+					rc = -EPERM;
+					goto clean_up;
+				}
 				e_ctrl->i2c_client.addr_type =
 					eeprom_map->mem_settings[i].addr_type;
 				rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
