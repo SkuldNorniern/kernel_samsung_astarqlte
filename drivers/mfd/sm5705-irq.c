@@ -198,7 +198,7 @@ static irqreturn_t sm5705_irq_thread(int irq, void *data)
  if (ret < 0) {
      pr_err("%s :Error : can't read irq status (%d)\n",
             __func__, ret);
-     return ret;
+     return IRQ_NONE;
  }
 
  /* Apply masking */
