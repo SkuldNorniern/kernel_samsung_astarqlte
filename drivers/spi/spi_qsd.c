@@ -2722,6 +2722,8 @@ static int msm_spi_pm_suspend_runtime(struct device *device)
 	unsigned long	   flags;
 
 	dev_dbg(device, "pm_runtime: suspending...\n");
+	if (msm_spi_fp_tz_bus(pdev->id))
+		return 0;
 	if (!master)
 		goto suspend_exit;
 	dd = spi_master_get_devdata(master);
@@ -2768,6 +2770,8 @@ static int msm_spi_pm_resume_runtime(struct device *device)
 	int               ret = 0;
 
 	dev_dbg(device, "pm_runtime: resuming...\n");
+	if (msm_spi_fp_tz_bus(pdev->id))
+		return 0;
 	if (!master)
 		goto resume_exit;
 	dd = spi_master_get_devdata(master);
