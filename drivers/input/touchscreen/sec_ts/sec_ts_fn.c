@@ -4820,11 +4820,8 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	short *pFrame = NULL;
 	int ii, jj;
 	u8 data[32] = { 0 };
-	short cm3[ts->rx_count][ts->tx_count];
-	short gap_x[ts->rx_count][ts->tx_count];
-	short gap_y[ts->rx_count][ts->tx_count];
-	short gap_max[ts->rx_count][ts->tx_count];
-	short spec[ts->rx_count][ts->tx_count];
+	short *cm_tbl = NULL;
+	short *cm3, *gap_x, *gap_y, *gap_max, *spec;
 
 	sec_cmd_set_default_result(sec);
 
@@ -4857,6 +4854,21 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	}
 
 	memset(pFrame, 0x00, size);
+
+	cm_tbl = kcalloc(5 * ts->rx_count * ts->tx_count, sizeof(short), GFP_KERNEL);
+	if (!cm_tbl) {
+		snprintf(buff, sizeof(buff), "%s", "NG");
+		sec_cmd_set_cmd_result(sec, buff, strnlen(buff, sizeof(buff)));
+		sec->cmd_state = SEC_CMD_STATUS_FAIL;
+		kfree(rBuff);
+		vfree(pFrame);
+		return;
+	}
+	cm3 = cm_tbl;
+	gap_x = cm3 + ts->rx_count * ts->tx_count;
+	gap_y = gap_x + ts->rx_count * ts->tx_count;
+	gap_max = gap_y + ts->rx_count * ts->tx_count;
+	spec = gap_max + ts->rx_count * ts->tx_count;
 
 	disable_irq(ts->client->irq);
 
@@ -4963,28 +4975,28 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	for (ii = 0; ii < (ts->tx_count * ts->rx_count * 2); ii += 2)
 		pFrame[ii / 2] = rBuff[ii + 1] + (rBuff[ii] << 8);
 
-	memset(&cm3[0][0], 0x00, ts->tx_count * ts->rx_count * 2);
-	memset(&gap_x[0][0], 0x00, ts->tx_count * ts->rx_count * 2);
-	memset(&gap_y[0][0], 0x00, ts->tx_count * ts->rx_count * 2);
-	memset(&gap_max[0][0], 0x00, ts->tx_count * ts->rx_count * 2);
+	memset(&cm3[(0) * ts->tx_count + (0)], 0x00, ts->tx_count * ts->rx_count * 2);
+	memset(&gap_x[(0) * ts->tx_count + (0)], 0x00, ts->tx_count * ts->rx_count * 2);
+	memset(&gap_y[(0) * ts->tx_count + (0)], 0x00, ts->tx_count * ts->rx_count * 2);
+	memset(&gap_max[(0) * ts->tx_count + (0)], 0x00, ts->tx_count * ts->rx_count * 2);
 
-	memset(&spec[0][0], 0x00, ts->tx_count * ts->rx_count * 2);
+	memset(&spec[(0) * ts->tx_count + (0)], 0x00, ts->tx_count * ts->rx_count * 2);
 	for (ii = 0; ii < ts->rx_count; ii++) {
 		for (jj = 0; jj < ts->tx_count; jj++) {
-			spec[ii][jj] = 7;
+			spec[(ii) * ts->tx_count + (jj)] = 7;
 		}
 	}
-	spec[0][0] = 40;
-	spec[0][ts->tx_count - 1] = 40;
-	spec[0][ts->tx_count - 2] = 40;
-	spec[ts->rx_count - 1][0] = 40;
-	spec[ts->rx_count - 2][0] = 40;
-	spec[ts->rx_count - 1][ts->tx_count - 2] = 40;
-	spec[ts->rx_count - 2][ts->tx_count - 1] = 40;
+	spec[(0) * ts->tx_count + (0)] = 40;
+	spec[(0) * ts->tx_count + (ts->tx_count - 1)] = 40;
+	spec[(0) * ts->tx_count + (ts->tx_count - 2)] = 40;
+	spec[(ts->rx_count - 1) * ts->tx_count + (0)] = 40;
+	spec[(ts->rx_count - 2) * ts->tx_count + (0)] = 40;
+	spec[(ts->rx_count - 1) * ts->tx_count + (ts->tx_count - 2)] = 40;
+	spec[(ts->rx_count - 2) * ts->tx_count + (ts->tx_count - 1)] = 40;
 
 	for (ii = 0; ii < ts->rx_count; ii++) {
 		for (jj = 0; jj < ts->tx_count; jj++) {
-			cm3[ii][jj] = pFrame[jj * ts->rx_count + ii];
+			cm3[(ii) * ts->tx_count + (jj)] = pFrame[jj * ts->rx_count + ii];
 		}
 	}
 
@@ -4992,7 +5004,7 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	for (ii = 0; ii < ts->rx_count; ii++) {
 		pr_cont("sec_input: ");
 		for (jj = 0; jj < ts->tx_count; jj++) {
-			pr_cont("%d ", cm3[ii][jj]);
+			pr_cont("%d ", cm3[(ii) * ts->tx_count + (jj)]);
 		}
 		pr_cont("\n");
 	}
@@ -5001,14 +5013,14 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	for (ii = 0; ii < ts->rx_count; ii++) {
 		for (jj = 0; jj < ts->tx_count - 1; jj++) {
 			if ((ii > 0 && ii < (ts->rx_count - 1)) && (jj == 0 || jj == (ts->tx_count - 2))) {
-				gap_x[ii][jj] = 0;
+				gap_x[(ii) * ts->tx_count + (jj)] = 0;
 				continue;
 			}
 
-			if (cm3[ii][jj] > cm3[ii][jj + 1]) {
-				gap_x[ii][jj] = (cm3[ii][jj] - cm3[ii][jj + 1]) * 100 / cm3[ii][jj];
+			if (cm3[(ii) * ts->tx_count + (jj)] > cm3[(ii) * ts->tx_count + (jj + 1)]) {
+				gap_x[(ii) * ts->tx_count + (jj)] = (cm3[(ii) * ts->tx_count + (jj)] - cm3[(ii) * ts->tx_count + (jj + 1)]) * 100 / cm3[(ii) * ts->tx_count + (jj)];
 			} else {
-				gap_x[ii][jj] = (cm3[ii][jj + 1] - cm3[ii][jj]) * 100 / cm3[ii][jj + 1];
+				gap_x[(ii) * ts->tx_count + (jj)] = (cm3[(ii) * ts->tx_count + (jj + 1)] - cm3[(ii) * ts->tx_count + (jj)]) * 100 / cm3[(ii) * ts->tx_count + (jj + 1)];
 			}
 		}
 	}
@@ -5016,21 +5028,21 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	for (ii = 0; ii < ts->rx_count - 1; ii++) {
 		for (jj = 0; jj < ts->tx_count; jj++) {
 			if ((jj > 0 && jj < (ts->tx_count - 1)) && (ii == 0 || ii == (ts->rx_count - 2))) {
-				gap_y[ii][jj] = 0;
+				gap_y[(ii) * ts->tx_count + (jj)] = 0;
 				continue;
 			}
 
-			if (cm3[ii][jj] > cm3[ii + 1][jj]) {
-				gap_y[ii][jj] = (cm3[ii][jj] - cm3[ii + 1][jj]) * 100 / cm3[ii][jj];
+			if (cm3[(ii) * ts->tx_count + (jj)] > cm3[(ii + 1) * ts->tx_count + (jj)]) {
+				gap_y[(ii) * ts->tx_count + (jj)] = (cm3[(ii) * ts->tx_count + (jj)] - cm3[(ii + 1) * ts->tx_count + (jj)]) * 100 / cm3[(ii) * ts->tx_count + (jj)];
 			} else {
-				gap_y[ii][jj] = (cm3[ii + 1][jj] - cm3[ii][jj]) * 100 / cm3[ii + 1][jj];
+				gap_y[(ii) * ts->tx_count + (jj)] = (cm3[(ii + 1) * ts->tx_count + (jj)] - cm3[(ii) * ts->tx_count + (jj)]) * 100 / cm3[(ii + 1) * ts->tx_count + (jj)];
 			}
 		}
 	}
 
 	for (ii = 0; ii < ts->rx_count; ii++) {
 		for (jj = 0; jj < ts->tx_count; jj++) {
-			gap_max[ii][jj] = max(gap_x[ii][jj], gap_y[ii][jj]);
+			gap_max[(ii) * ts->tx_count + (jj)] = max(gap_x[(ii) * ts->tx_count + (jj)], gap_y[(ii) * ts->tx_count + (jj)]);
 		}
 	}
 
@@ -5038,10 +5050,10 @@ static void run_15khz_cm3_gap_read(void *device_data)
 	for (ii = 0; ii < ts->rx_count; ii++) {
 		pr_cont("sec_input: ");
 		for (jj = 0; jj < ts->tx_count; jj++) {
-			if (gap_max[ii][jj] < spec[ii][jj]) {
-				pr_cont("%d ", gap_max[ii][jj]);
+			if (gap_max[(ii) * ts->tx_count + (jj)] < spec[(ii) * ts->tx_count + (jj)]) {
+				pr_cont("%d ", gap_max[(ii) * ts->tx_count + (jj)]);
 			} else {
-				pr_cont("%d(X) ", gap_max[ii][jj]);
+				pr_cont("%d(X) ", gap_max[(ii) * ts->tx_count + (jj)]);
 				rc = 1;
 			}
 		}
@@ -5064,6 +5076,7 @@ static void run_15khz_cm3_gap_read(void *device_data)
 
 	kfree(rBuff);
 	vfree(pFrame);
+	kfree(cm_tbl);
 	return;
 
 cm_gap_i2c_err:
@@ -5080,6 +5093,7 @@ cm_gap_i2c_err:
 	ts->factory_position = 0;
 	kfree(rBuff);
 	vfree(pFrame);
+	kfree(cm_tbl);
 	send_event_to_user(ts, sec->cmd_param[0], UEVENT_OPEN_SHORT_FAIL);
 }
 
