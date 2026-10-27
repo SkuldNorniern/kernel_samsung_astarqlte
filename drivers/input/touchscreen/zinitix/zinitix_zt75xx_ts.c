@@ -4269,7 +4269,8 @@ static void run_dnd_read_all(void *device_data)
 	struct bt532_ts_info *info = container_of(sec, struct bt532_ts_info, sec);
 	struct tsp_raw_data *raw_data = info->raw_data;
 	char buff[16] = { 0 };
-	char all_cmdbuff[info->cap_info.x_node_num*info->cap_info.y_node_num*6];
+	char *all_cmdbuff = NULL;
+	size_t all_cmdbuff_size = 0;
 	s32 i, j;
 	int ret;
 
@@ -4288,7 +4289,12 @@ static void run_dnd_read_all(void *device_data)
 	get_raw_data(info, (u8 *)raw_data->dnd_data, 1);
 	ts_set_touchmode(TOUCH_POINT_MODE);
 
-	memset(all_cmdbuff,0,sizeof(char)*(info->cap_info.x_node_num*info->cap_info.y_node_num*6));	//size 6  ex(12000,)
+	all_cmdbuff_size = info->cap_info.x_node_num * info->cap_info.y_node_num * 6;
+	all_cmdbuff = kzalloc(all_cmdbuff_size, GFP_KERNEL);
+	if (!all_cmdbuff) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	for(i = 0; i < info->cap_info.x_node_num; i++) {
 		for(j = 0; j < info->cap_info.y_node_num; j++) {
@@ -4298,7 +4304,8 @@ static void run_dnd_read_all(void *device_data)
 	}
 
 	sec_cmd_set_cmd_result(sec, all_cmdbuff,
-			strnlen(all_cmdbuff, sizeof(all_cmdbuff)));
+			strnlen(all_cmdbuff, all_cmdbuff_size));
+	kfree(all_cmdbuff);
 	sec->cmd_state = SEC_CMD_STATUS_OK;
 
 out:
@@ -5518,7 +5525,8 @@ static void run_ssr_read_all(void *device_data)
 	struct i2c_client *client = info->client;
 	struct tsp_raw_data *raw_data = info->raw_data;
 	char buff[16] = { 0 };
-	char all_cmdbuff[info->cap_info.y_node_num*6];
+	char *all_cmdbuff = NULL;
+	size_t all_cmdbuff_size = 0;
 	s32 j;
 	int ret;
 
@@ -5537,7 +5545,12 @@ static void run_ssr_read_all(void *device_data)
 	get_raw_data(info, (u8 *)raw_data->ssr_data, 1);
 	ts_set_touchmode(TOUCH_POINT_MODE);
 
-	memset(all_cmdbuff,0,sizeof(char)*(info->cap_info.y_node_num*6));	//size 6  ex(12000,)
+	all_cmdbuff_size = info->cap_info.y_node_num * 6;
+	all_cmdbuff = kzalloc(all_cmdbuff_size, GFP_KERNEL);
+	if (!all_cmdbuff) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	for (j = 0; j < info->cap_info.y_node_num; j++) {
 		sprintf(buff, "%u,", raw_data->ssr_data[j]);
@@ -5545,7 +5558,8 @@ static void run_ssr_read_all(void *device_data)
 	}
 
 	sec_cmd_set_cmd_result(sec, all_cmdbuff,
-			strnlen(all_cmdbuff, sizeof(all_cmdbuff)));
+			strnlen(all_cmdbuff, all_cmdbuff_size));
+	kfree(all_cmdbuff);
 	sec->cmd_state = SEC_CMD_STATUS_OK;
 
 out:
