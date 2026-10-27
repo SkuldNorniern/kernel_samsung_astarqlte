@@ -9521,6 +9521,7 @@ err_get_pinctrl:
 	info->input_dev = NULL;
 error_null_data:
 err_alloc:
+	misc_info = NULL;
 	kfree(info);
 	/* irq gpio was requested by zinitix_init_gpio() in the dt path */
 	if (client->dev.of_node && gpio_is_valid(pdata->gpio_int))
