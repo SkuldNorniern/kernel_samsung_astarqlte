@@ -981,8 +981,10 @@ static int sm5705_rgb_probe(struct platform_device *pdev)
 		goto rgb_dt_parse_err;
 
 	sm5705_rgb->led_dev = sec_device_create(0, sm5705_rgb, "led");
-	if (unlikely(!sm5705_rgb->led_dev)) {
+	if (IS_ERR_OR_NULL(sm5705_rgb->led_dev)) {
 		dev_err(dev, "fail to create device for samsung specific led\n");
+		ret = sm5705_rgb->led_dev ? PTR_ERR(sm5705_rgb->led_dev) : -ENODEV;
+		sm5705_rgb->led_dev = NULL;
 		goto sec_device_create_err;
 	}
 
@@ -1018,7 +1020,7 @@ static int sm5705_rgb_probe(struct platform_device *pdev)
 	ret = sm5705_write_reg(sm5705_rgb->i2c,SM5705_REG_CNTLPWM, 0x00);
 	if (ret < 0) {
 		dev_err(sm5705_rgb->dev, "%s: write reg fail\n", __func__);
-		return ret;
+		goto sec_sysfs_create_group_err;
 	}
 
 	return 0;
@@ -1030,9 +1032,7 @@ sec_device_create_err:
 	_unregister_led_commonclass_dev(sm5705_rgb);
 
 rgb_dt_parse_err:
-	devm_kfree(dev, sm5705_rgb);
-
-	return -1;
+	return ret;
 }
 
 static int sm5705_rgb_remove(struct platform_device *pdev)
