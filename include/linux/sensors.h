@@ -164,5 +164,9 @@ struct sensors_classdev {
 extern int sensors_classdev_register(struct device *parent,
 				 struct sensors_classdev *sensors_cdev);
 extern void sensors_classdev_unregister(struct sensors_classdev *sensors_cdev);
+int sensors_register(struct device **dev, void *drvdata,
+		struct device_attribute *attributes[], char *name);
+void sensors_unregister(struct device *dev,
+		struct device_attribute *attributes[]);
 
 #endif		/* __LINUX_SENSORS_H_INCLUDED */

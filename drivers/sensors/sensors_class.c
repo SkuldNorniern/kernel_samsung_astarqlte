@@ -573,6 +573,39 @@ static const struct attribute_group *sensor_groups[] = {
 };
 #endif /* CONFIG_MACH_ASUS_SDM660 */
 
+int sensors_register(struct device **dev, void *drvdata,
+		struct device_attribute *attributes[], char *name)
+{
+	int ret = 0;
+	int i;
+
+	*dev = device_create(sensors_class, NULL, 0, drvdata, "%s", name);
+	if (IS_ERR(*dev)) {
+		ret = PTR_ERR(*dev);
+		pr_err("[SENSOR] %s: device_create failed![%d]\n",
+			__func__, ret);
+		return ret;
+	}
+
+	for (i = 0; attributes[i] != NULL; i++)
+		if (device_create_file(*dev, attributes[i]) < 0)
+			pr_err("[SENSOR] %s: fail device_create_file(dev, attributes[%d])\n",
+				__func__, i);
+
+	return ret;
+}
+EXPORT_SYMBOL(sensors_register);
+
+void sensors_unregister(struct device *dev,
+		struct device_attribute *attributes[])
+{
+	int i;
+
+	for (i = 0; attributes[i] != NULL; i++)
+		device_remove_file(dev, attributes[i]);
+}
+EXPORT_SYMBOL(sensors_unregister);
+
 static int __init sensors_init(void)
 {
 	sensors_class = class_create(THIS_MODULE, "sensors");
