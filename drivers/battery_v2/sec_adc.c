@@ -119,7 +119,12 @@ static int sec_bat_adc_ap_read(struct sec_battery_info *battery, int channel)
 	case SEC_BAT_ADC_CHANNEL_BAT_CHECK:
 		sec_bat_read_adc(channel, &results);
 		pr_debug("BAT_ID physical= %lld, raw = 0x%x\n", results.physical, results.adc_code);
-		data = results.physical;
+		if (results.physical > INT_MAX)
+			data = INT_MAX;
+		else if (results.physical < INT_MIN)
+			data = INT_MIN;
+		else
+			data = (int)results.physical;
 		break;
 	case SEC_BAT_ADC_CHANNEL_USB_TEMP:
 		sec_bat_read_adc(channel, &results);
