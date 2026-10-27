@@ -1295,3 +1295,10 @@
 		tdmb_xtal_freq = <24000>;
 	};
 };
+
+/* mtp dtsi parallel charger, not on this board (no SMB1351 in stock r07). */
+&i2c_2 {
+	smb1351-charger@1d {
+		status = "disabled";
+	};
+};
