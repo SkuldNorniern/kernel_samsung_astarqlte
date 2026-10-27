@@ -623,13 +623,13 @@ static long tdmb_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case IOCTL_TDMB_GET_DATA_BUFFSIZE:
 		DPRINTK("IOCTL_TDMB_GET_DATA_BUFFSIZE %d\n", tdmb_ts_size);
 		ret = copy_to_user((unsigned int *)arg,
-				&tdmb_ts_size, sizeof(unsigned int));
+				&tdmb_ts_size, sizeof(unsigned int)) ? -EFAULT : 0;
 		break;
 
 	case IOCTL_TDMB_GET_CMD_BUFFSIZE:
 		DPRINTK("IOCTL_TDMB_GET_CMD_BUFFSIZE %d\n", cmd_size);
 		ret = copy_to_user((unsigned int *)arg,
-				&cmd_size, sizeof(unsigned int));
+				&cmd_size, sizeof(unsigned int)) ? -EFAULT : 0;
 		break;
 
 	case IOCTL_TDMB_POWER_ON:
@@ -657,6 +657,10 @@ static long tdmb_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		fig_freq = arg;
 
 		ensemble_info = vmalloc(sizeof(struct ensemble_info_type));
+		if (!ensemble_info) {
+			mutex_unlock(&tdmb_lock);
+			return -ENOMEM;
+		}
 		memset((char *)ensemble_info, 0x00, sizeof(struct ensemble_info_type));
 
 		ret = tdmbdrv_func->scan_ch(ensemble_info, fig_freq);
@@ -682,10 +686,17 @@ static long tdmb_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			break;
 		}
 		ensemble_info = vmalloc(sizeof(struct ensemble_info_type));
-		if (copy_from_user(ensemble_info, (void *)arg, sizeof(struct ensemble_info_type)))
+		if (!ensemble_info) {
+			mutex_unlock(&tdmb_lock);
+			return -ENOMEM;
+		}
+		if (copy_from_user(ensemble_info, (void *)arg, sizeof(struct ensemble_info_type))) {
 			DPRINTK("cmd(%x):copy_from_user failed\n", cmd);
-		else
-			fig_freq = ensemble_info->ensem_freq;
+			vfree(ensemble_info);
+			mutex_unlock(&tdmb_lock);
+			return -EFAULT;
+		}
+		fig_freq = ensemble_info->ensem_freq;
 		DPRINTK("IOCTL_TDMB_SCAN_FREQ_SYNC %ld\n", fig_freq);
 		memset((char *)ensemble_info, 0x00, sizeof(struct ensemble_info_type));
 
@@ -750,9 +761,12 @@ static long tdmb_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			break;
 		}
 		tdmbdrv_func->get_dm(&dm_buff);
-		if (copy_to_user((struct tdmb_dm *)arg, &dm_buff, sizeof(struct tdmb_dm)))
+		if (copy_to_user((struct tdmb_dm *)arg, &dm_buff, sizeof(struct tdmb_dm))) {
 			DPRINTK("IOCTL_TDMB_GET_DM : copy_to_user failed\n");
-		ret = true;
+			ret = -EFAULT;
+		} else {
+			ret = true;
+		}
 		DPRINTK("rssi %d, ber %d, ANT %d\n",
 			dm_buff.rssi, dm_buff.ber, dm_buff.antenna);
 		mutex_unlock(&tdmb_lock);
