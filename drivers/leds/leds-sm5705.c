@@ -24,6 +24,7 @@
 #include <linux/leds-sm5705.h>
 #include <linux/mfd/sm5705/sm5705.h>
 #include <linux/battery/charger/sm5705_charger_oper.h>
+#include <linux/camera_class.h>
 
 /*
  * Stock builds with CONFIG_MUIC_UNIVERSAL_SM5705_AFC=y, so the sleepable
@@ -81,8 +82,7 @@ FlashlightLevelInfo calibData[MAX_FLASHLIGHT_LEVEL] = {
 };
 
 
-/*sys/class/camera*/
-/* sys/class/camera: created here, stock got it from msm camera code */
+/* sys/class/camera: shared class, see drivers/misc/camera_class.c */
 static struct class *camera_class;
 bool assistive_light[2] = {false, false};
 bool factory_flash_test[2] = { false, false };
@@ -1113,14 +1113,12 @@ static int sm5705_led_probe(struct platform_device *pdev)
 	int ret = 0;
 
 
-	if (!camera_class) {
-		camera_class = class_create(THIS_MODULE, "camera");
-		if (IS_ERR(camera_class)) {
-			dev_err(dev, "%s: fail to create camera class\n", __func__);
-			ret = PTR_ERR(camera_class);
-			camera_class = NULL;
-			return ret;
-		}
+	camera_class = camera_class_get();
+	if (IS_ERR(camera_class)) {
+		dev_err(dev, "%s: fail to get camera class\n", __func__);
+		ret = PTR_ERR(camera_class);
+		camera_class = NULL;
+		return ret;
 	}
 
 	sm5705_fled = devm_kzalloc(dev, sizeof(struct sm5705_fled_info), GFP_KERNEL);
@@ -1278,8 +1276,6 @@ module_init(sm5705_led_init);
 static void __exit sm5705_led_exit(void)
 {
 	platform_driver_unregister(&sm5705_led_driver);
-	class_destroy(camera_class);
-	camera_class = NULL;
 }
 module_exit(sm5705_led_exit);
 

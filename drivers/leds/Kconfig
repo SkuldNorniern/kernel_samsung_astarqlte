@@ -829,6 +829,7 @@ config LEDS_QPNP_HAPTICS
 config LEDS_SM5705
 	tristate "Siliconmitus SM5705 flash LED driver"
 	depends on LEDS_CLASS && MFD_SM5705
+	select CAMERA_CLASS
 	help
 	  A driver for Siliconmitus SM5705 flash LED. The rear flash is
 	  exposed as /sys/class/camera/flash/rear_flash.
