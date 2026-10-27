@@ -17,4 +17,14 @@ config SENSORS_ET5XX
 	  If you say yes here you get support for Egistec's
 	  fingerprint sensor ET5XX.
 
+config SENSORS_ET5XX_ALLOW_NVM_WRITE
+	bool "Allow ET5XX sensor NVM/VDM writes"
+	depends on SENSORS_ET5XX
+	default n
+	help
+	  NVM and VDM write ioctls (FP_NVM_WRITE, FP_NVM_WRITEEX,
+	  FP_VDM_WRITE) program the sensor's non-volatile memory. They are
+	  refused with -EPERM unless this is set. Off by default. Reads and
+	  register access are not affected.
+
 endif # SENSORS_FINGERPRINT

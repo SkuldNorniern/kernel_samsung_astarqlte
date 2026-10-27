@@ -217,6 +217,15 @@ static ssize_t etspi_read(struct file *filp,
 	return 0;
 }
 
+static bool etspi_nvm_write_allowed(void)
+{
+	if (IS_ENABLED(CONFIG_SENSORS_ET5XX_ALLOW_NVM_WRITE))
+		return true;
+
+	pr_warn_once("et5xx: sensor NVM/VDM write blocked (SENSORS_ET5XX_ALLOW_NVM_WRITE is off)\n");
+	return false;
+}
+
 static ssize_t etspi_write(struct file *filp,
 						const char __user *buf,
 						size_t count,
@@ -388,6 +397,10 @@ static long etspi_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	case FP_NVM_WRITE:
+		if (!etspi_nvm_write_allowed()) {
+			retval = -EPERM;
+			break;
+		}
 		pr_debug("%s FP_NVM_WRITE, (%d)\n", __func__,
 				spi->max_speed_hz);
 		retval = etspi_io_nvm_write(etspi, ioc);
@@ -404,6 +417,10 @@ static long etspi_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	case FP_NVM_WRITEEX:
+		if (!etspi_nvm_write_allowed()) {
+			retval = -EPERM;
+			break;
+		}
 		pr_debug("%s FP_NVM_WRITEEX, (%d)\n", __func__,
 				spi->max_speed_hz);
 		retval = etspi_io_nvm_writeex(etspi, ioc);
@@ -442,6 +459,10 @@ static long etspi_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	case FP_VDM_WRITE:
+		if (!etspi_nvm_write_allowed()) {
+			retval = -EPERM;
+			break;
+		}
 		pr_debug("%s FP_VDM_WRITE\n", __func__);
 		if (ioc->len > ETSPI_MAX_XFER_LEN) {
 			retval = -EINVAL;
