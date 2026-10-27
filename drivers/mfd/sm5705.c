@@ -240,7 +240,7 @@ static int sm5705_i2c_probe(struct i2c_client *i2c,
 
 	pr_info("%s:%s\n", MFD_DEV_NAME, __func__);
 
-	sm5705 = kzalloc(sizeof(struct sm5705_dev), GFP_KERNEL);
+	sm5705 = devm_kzalloc(&i2c->dev, sizeof(struct sm5705_dev), GFP_KERNEL);
 	if (!sm5705) {
 		dev_err(&i2c->dev, "%s: Failed to alloc mem for sm5705\n", __func__);
 		return -ENOMEM;
@@ -313,7 +313,6 @@ err_irq_init:
 	irq_free_descs(pdata->irq_base, SM5705_MAX_IRQ);
 	mutex_destroy(&sm5705->i2c_lock);
 err:
-	kfree(sm5705);
 	return ret;
 }
 
@@ -324,7 +323,6 @@ static int sm5705_i2c_remove(struct i2c_client *i2c)
 	mfd_remove_devices(sm5705->dev);
 	sm5705_irq_exit(sm5705);
 	irq_free_descs(sm5705->pdata->irq_base, SM5705_MAX_IRQ);
-	kfree(sm5705);
 
 	return 0;
 }
