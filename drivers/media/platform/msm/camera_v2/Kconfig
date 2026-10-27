@@ -295,6 +295,25 @@ config GET_REAR_MODULE_ID
 	  Copies the rear camera module id from the eeprom map into the
 	  camera sysfs (rear_moduleid).
 
+config SAMSUNG_MULTI_CAMERA
+	bool "Samsung multi camera (rear2, front) support"
+	depends on MSMB_CAMERA
+	help
+	  Enables the Samsung multi-sensor paths in the sensor, eeprom and
+	  actuator drivers.
+
+config CAMERA_DUAL_REAR
+	bool "Samsung dual rear camera"
+	depends on SAMSUNG_MULTI_CAMERA
+	help
+	  Two rear sensors. eeprom@51 is rear2 and the front eeprom is subdev 2.
+
+config MSM_FRONT_EEPROM
+	bool "Front camera eeprom support"
+	depends on MSM_EEPROM
+	help
+	  Reads the front camera cal map from its eeprom (sensor init side).
+
 config GET_FRONT_MODULE_ID
 	bool "Read front camera module id from eeprom"
 	depends on MSM_EEPROM
