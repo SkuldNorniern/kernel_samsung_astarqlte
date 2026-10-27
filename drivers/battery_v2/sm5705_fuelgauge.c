@@ -2505,6 +2505,13 @@ static int sm5705_fuelgauge_remove(struct i2c_client *client)
 
 	if (fuelgauge->pdata->fuel_alert_soc >= 0)
 		wake_lock_destroy(&fuelgauge->fuel_alert_wake_lock);
+	if (fuelgauge->fg_irq > 0) {
+		free_irq(fuelgauge->fg_irq, fuelgauge);
+		cancel_delayed_work_sync(&fuelgauge->isr_work);
+	}
+	power_supply_unregister(fuelgauge->psy_fg);
+	mutex_destroy(&fuelgauge->fg_lock);
+	kfree(fuelgauge);
 
 	return 0;
 }
