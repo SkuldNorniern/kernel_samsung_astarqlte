@@ -1,0 +1,109 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ * sec_compat.h - shims for Samsung services not ported to 4.19 yet.
+ *
+ * sec_param (persistent parameter block) and STI abc (event reporting)
+ * are not present in this tree. Parameter writes fail with -ENODEV and
+ * ABC events are dropped until the real services are brought over.
+ *
+ * MUIC (CONFIG_USE_MUIC) is out of scope for this port. When it is off,
+ * the attached-device enumerators used by sec_battery.c are provided here
+ * with the 4.4 names so the battery code compiles. No MUIC driver reports
+ * cable changes, so the device type stays ATTACHED_DEV_NONE_MUIC and the
+ * AFC query always reports "enabled".
+ */
+#ifndef __SEC_COMPAT_H
+#define __SEC_COMPAT_H
+
+#include <linux/errno.h>
+
+enum sec_param_index {
+	param_index_wireless_charging_mode = 0,
+};
+
+static inline int sec_set_param(enum sec_param_index index, void *value)
+{
+	return -ENODEV;
+}
+
+static inline int sec_get_param(enum sec_param_index index, void *value)
+{
+	return -ENODEV;
+}
+
+static inline void sec_abc_send_event(const char *str)
+{
+}
+
+#if !defined(CONFIG_USE_MUIC)
+#define CH_MODE_AFC_ENABLE_VAL		0x30
+#define CH_MODE_AFC_DISABLE_VAL		0x31
+
+typedef int muic_attached_dev_t;
+
+enum {
+	ATTACHED_DEV_NONE_MUIC = 0,
+	ATTACHED_DEV_USB_MUIC,
+	ATTACHED_DEV_CDP_MUIC,
+	ATTACHED_DEV_TA_MUIC,
+	ATTACHED_DEV_JIG_USB_OFF_MUIC,
+	ATTACHED_DEV_JIG_USB_ON_MUIC,
+	ATTACHED_DEV_JIG_UART_OFF_MUIC,
+	ATTACHED_DEV_JIG_UART_OFF_VB_MUIC,
+	ATTACHED_DEV_JIG_UART_OFF_VB_OTG_MUIC,
+	ATTACHED_DEV_JIG_UART_OFF_VB_FG_MUIC,
+	ATTACHED_DEV_JIG_UART_ON_MUIC,
+	ATTACHED_DEV_JIG_UART_ON_VB_MUIC,
+	ATTACHED_DEV_DESKDOCK_MUIC,
+	ATTACHED_DEV_DESKDOCK_VB_MUIC,
+	ATTACHED_DEV_CARDOCK_MUIC,
+	ATTACHED_DEV_SMARTDOCK_MUIC,
+	ATTACHED_DEV_SMARTDOCK_TA_MUIC,
+	ATTACHED_DEV_SMARTDOCK_USB_MUIC,
+	ATTACHED_DEV_OTG_MUIC,
+	ATTACHED_DEV_MHL_MUIC,
+	ATTACHED_DEV_CHARGING_CABLE_MUIC,
+	ATTACHED_DEV_HMT_MUIC,
+	ATTACHED_DEV_USB_LANHUB_MUIC,
+	ATTACHED_DEV_RDU_TA_MUIC,
+	ATTACHED_DEV_QC_CHARGER_5V_MUIC,
+	ATTACHED_DEV_QC_CHARGER_9V_MUIC,
+	ATTACHED_DEV_QC_CHARGER_ERR_V_MUIC,
+	ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_12V_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_12V_DUPLI_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC,
+	ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC,
+	ATTACHED_DEV_UNDEFINED_CHARGING_MUIC,
+	ATTACHED_DEV_UNDEFINED_RANGE_MUIC,
+	ATTACHED_DEV_HICCUP_MUIC,
+	ATTACHED_DEV_TIMEOUT_OPEN_MUIC,
+	ATTACHED_DEV_HV_ID_ERR_UNDEFINED_MUIC,
+	ATTACHED_DEV_HV_ID_ERR_UNSUPPORTED_MUIC,
+	ATTACHED_DEV_HV_ID_ERR_SUPPORTED_MUIC,
+	ATTACHED_DEV_UNSUPPORTED_ID_VB_MUIC,
+	ATTACHED_DEV_VZW_INCOMPATIBLE_MUIC,
+	ATTACHED_DEV_UNOFFICIAL_TA_MUIC,
+	ATTACHED_DEV_UNOFFICIAL_ID_TA_MUIC,
+	ATTACHED_DEV_UNOFFICIAL_ID_USB_MUIC,
+	ATTACHED_DEV_UNOFFICIAL_ID_CDP_MUIC,
+	ATTACHED_DEV_UNOFFICIAL_ID_ANY_MUIC,
+};
+
+static inline int get_afc_mode(void)
+{
+	return CH_MODE_AFC_ENABLE_VAL;
+}
+
+static inline int muic_afc_set_voltage(int voltage)
+{
+	return 0;
+}
+#endif /* !CONFIG_USE_MUIC */
+
+#endif /* __SEC_COMPAT_H */

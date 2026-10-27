@@ -21,6 +21,7 @@
 #define __SEC_BATTERY_H __FILE__
 
 #include "sec_charging_common.h"
+#include "sec_compat.h"
 #include <linux/of_gpio.h>
 #include <linux/alarmtimer.h>
 #include <linux/wakelock.h>
@@ -39,7 +40,7 @@
 #if defined(CONFIG_MUIC_NOTIFIER)
 #include <linux/muic/muic.h>
 #include <linux/muic/muic_notifier.h>
-#else
+#elif defined(CONFIG_USE_MUIC)
 #include <linux/muic/muic.h>
 #endif
 #endif

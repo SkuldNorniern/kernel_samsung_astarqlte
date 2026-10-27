@@ -10,9 +10,8 @@
  * published by the Free Software Foundation.
  */
 #include "include/sec_battery.h"
-#include <linux/sec_param.h>
+#include "include/sec_compat.h"
 #if defined(CONFIG_SEC_ABC)
-#include <linux/sti/abc_common.h>
 #endif
 #ifdef CONFIG_SAMSUNG_BATTERY_DISALLOW_DEEP_SLEEP
 #include <linux/clk.h>
@@ -4690,21 +4689,26 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 	case CISD_DATA:
 		{
 			struct cisd *pcisd = &battery->cisd;
-			char temp_buf[1024] = {0,};
+			char *temp_buf = kzalloc(1024, GFP_KERNEL);
 			int j = 0;
 
+			if (!temp_buf)
+				break;
 			sprintf(temp_buf+strlen(temp_buf), "%d", pcisd->data[CISD_DATA_RESET_ALG]);
 			for (j = CISD_DATA_RESET_ALG + 1; j < CISD_DATA_MAX_PER_DAY; j++)
 				sprintf(temp_buf+strlen(temp_buf), " %d", pcisd->data[j]);
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%s\n", temp_buf);
+			kfree(temp_buf);
 		}
 		break;
 	case CISD_DATA_JSON:
 		{
 			struct cisd *pcisd = &battery->cisd;
-			char temp_buf[1920] = {0,};
+			char *temp_buf = kzalloc(1920, GFP_KERNEL);
 			int j = 0;
 
+			if (!temp_buf)
+				break;
 			sprintf(temp_buf+strlen(temp_buf), "\"%s\":\"%d\"",
 					cisd_data_str[CISD_DATA_RESET_ALG], pcisd->data[CISD_DATA_RESET_ALG]);
 			for (j = CISD_DATA_RESET_ALG + 1; j < CISD_DATA_MAX; j++) {
@@ -4713,14 +4717,17 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 				sprintf(temp_buf+strlen(temp_buf), ",\"%s\":\"%d\"", cisd_data_str[j], pcisd->data[j]);
 			}
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%s\n", temp_buf);
+			kfree(temp_buf);
 		}
 		break;
 	case CISD_DATA_D_JSON:
 		{
 			struct cisd *pcisd = &battery->cisd;
-			char temp_buf[1920] = {0,};
+			char *temp_buf = kzalloc(1920, GFP_KERNEL);
 			int j = 0;
 
+			if (!temp_buf)
+				break;
 			sprintf(temp_buf+strlen(temp_buf), "\"%s\":\"%d\"",
 				cisd_data_str_d[CISD_DATA_FULL_COUNT_PER_DAY-CISD_DATA_MAX],
 				pcisd->data[CISD_DATA_FULL_COUNT_PER_DAY]);
@@ -4756,6 +4763,7 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 
 			pcisd->data[CISD_DATA_CAP_MIN_PER_DAY] = 0xFFFF;
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%s\n", temp_buf);
+			kfree(temp_buf);
 		}
 		break;
 	case CISD_WIRE_COUNT:
@@ -4769,9 +4777,11 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 		{
 			struct cisd *pcisd = &battery->cisd;
 			struct pad_data *pad_data = pcisd->pad_array;
-			char temp_buf[1024] = {0,};
+			char *temp_buf = kzalloc(1024, GFP_KERNEL);
 			int j = 0;
 
+			if (!temp_buf)
+				break;
 			sprintf(temp_buf+strlen(temp_buf), "%d %d",
 				PAD_INDEX_VALUE, pcisd->pad_count);
 			while (((pad_data = pad_data->next) != NULL) &&
@@ -4779,15 +4789,18 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 					(j++ < pcisd->pad_count))
 				sprintf(temp_buf+strlen(temp_buf), " 0x%02x:%d", pad_data->id, pad_data->count);
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%s\n", temp_buf);
+			kfree(temp_buf);
 		}
 		break;
 	case CISD_WC_DATA_JSON:
 		{
 			struct cisd *pcisd = &battery->cisd;
 			struct pad_data *pad_data = pcisd->pad_array;
-			char temp_buf[1024] = {0,};
+			char *temp_buf = kzalloc(1024, GFP_KERNEL);
 			int j = 0;
 
+			if (!temp_buf)
+				break;
 			sprintf(temp_buf+strlen(temp_buf), "\"%s\":\"%d\"",
 					PAD_INDEX_STRING, PAD_INDEX_VALUE);
 			while (((pad_data = pad_data->next) != NULL) &&
@@ -4796,6 +4809,7 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 				sprintf(temp_buf+strlen(temp_buf), ",\"%s%02x\":\"%d\"",
 					PAD_JSON_STRING, pad_data->id, pad_data->count);
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%s\n", temp_buf);
+			kfree(temp_buf);
 		}
 		break;
 	case PREV_BATTERY_DATA:
@@ -6157,7 +6171,7 @@ static int sec_bat_set_property(struct power_supply *psy,
 	struct sec_battery_info *battery = power_supply_get_drvdata(psy);
 	int current_cable_type = SEC_BATTERY_CABLE_NONE;
 	int full_check_type = SEC_BATTERY_FULLCHARGED_NONE;
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property)psp;
 
 	dev_dbg(battery->dev,
 		"%s: (%d,%d)\n", __func__, psp, val->intval);
@@ -6392,7 +6406,7 @@ static int sec_bat_get_property(struct power_supply *psy,
 {
 	struct sec_battery_info *battery = power_supply_get_drvdata(psy);
 	union power_supply_propval value = {0, };
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property)psp;
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
@@ -6706,7 +6720,7 @@ static int sec_wireless_set_property(struct power_supply *psy,
 				const union power_supply_propval *val)
 {
 	struct sec_battery_info *battery = power_supply_get_drvdata(psy);
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property)psp;
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
@@ -9027,7 +9041,7 @@ static void sec_bat_init_chg_work(struct work_struct *work)
 		!(battery->misc_event & (BATT_MISC_EVENT_UNDEFINED_RANGE_TYPE |
 			BATT_MISC_EVENT_HICCUP_TYPE))) {
 		pr_info("%s: disable charging\n", __func__);
-		sec_bat_set_charge(battery, SEC_BAT_CHG_MODE_CHARGING_OFF);
+		sec_bat_set_charge(battery, (enum sec_battery_charging_mode)SEC_BAT_CHG_MODE_CHARGING_OFF);
 	}
 }
 

@@ -13,7 +13,7 @@
 #include "include/sec_cisd.h"
 
 #if defined(CONFIG_SEC_ABC)
-#include <linux/sti/abc_common.h>
+#include "include/sec_compat.h"
 #endif
 
 const char* cisd_data_str[] ={
