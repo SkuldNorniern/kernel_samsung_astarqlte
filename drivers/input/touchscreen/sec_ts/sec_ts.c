@@ -1797,6 +1797,7 @@ static int sec_ts_parse_dt(struct i2c_client *client)
 		ret = gpio_request_one(pdata->irq_gpio, GPIOF_DIR_IN, "sec,tsp_int");
 		if (ret) {
 			input_err(true, &client->dev, "%s: Unable to request tsp_int [%d]\n", __func__, pdata->irq_gpio);
+			pdata->irq_gpio = -1;	/* not ours: do not gpio_free it on probe error */
 			return -EINVAL;
 		}
 	} else {
@@ -2171,6 +2172,7 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 		}
 
 		client->dev.platform_data = pdata;
+		pdata->irq_gpio = -1;
 
 		ret = sec_ts_parse_dt(client);
 		if (ret) {
@@ -2499,10 +2501,6 @@ err_null_tdata:
 error_allocate_mem:
 	if (gpio_is_valid(pdata->irq_gpio))
 		gpio_free(pdata->irq_gpio);
-	if (gpio_is_valid(pdata->tsp_id))
-		gpio_free(pdata->tsp_id);
-	if (gpio_is_valid(pdata->tsp_icid))
-		gpio_free(pdata->tsp_icid);
 
 error_allocate_tdata:
 error_allocate_pdata:
