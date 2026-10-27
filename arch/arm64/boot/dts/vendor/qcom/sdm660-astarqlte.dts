@@ -448,6 +448,9 @@
 
 &spi_3 {
 	status = "okay";
+	/* stock forces use_bam off for the TZ-owned fp spi (spi_qsd.c, fp_spi_clock_get):
+	 * no BAM pipe use on blsp1, transfers go through PIO */
+	/delete-property/ qcom,use-bam;
 
 	etspi-spi@0 {
 		compatible = "etspi,et5xx";
