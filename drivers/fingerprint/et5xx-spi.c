@@ -894,7 +894,7 @@ static const struct file_operations etspi_fops = {
 #ifndef ENABLE_SENSORS_FPRINT_SECURE
 static int etspi_type_check(struct etspi_data *etspi)
 {
-	u8 buf1, buf2, buf3, buf4, buf5, buf6, buf7;
+	u8 buf1 = 0, buf2 = 0, buf3 = 0, buf4 = 0, buf5 = 0, buf6 = 0, buf7 = 0;
 
 	etspi_power_control(g_data, 1);
 
