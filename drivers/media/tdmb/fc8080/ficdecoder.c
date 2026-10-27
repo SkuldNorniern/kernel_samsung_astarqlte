@@ -390,6 +390,9 @@ int fib_decoder(struct fib *pfib)
 		if (pFig->head == 0xff || !length) {	 /* end mark */
 			break;
 		}
+		if (fib_ptr + length + 1 > 30) {	/* FIG runs past the FIB */
+			break;
+		}
 
 		fic_nice_cnt++;
 
