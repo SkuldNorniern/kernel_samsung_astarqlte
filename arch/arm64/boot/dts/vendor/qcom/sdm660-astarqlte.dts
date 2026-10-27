@@ -1200,10 +1200,14 @@
 
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
- * not yet: sm5705 usbldo,
- * not yet: dfps_data_mem,
+ * skipped: sm5705 usbldo (no stock DT node, no sm5705 regulator driver in stock),
+ * dfps_data_mem: already in sdm660.dtsi (0x9f800000, stock 0x9f7ff000, not moved to avoid splash overlap),
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
  * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry), ss_plog, sec_debug/tima regions, /chosen (stdout-path, bootargs), input_booster,
+
+ * not yet: camera flash, tdmb, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
+ * skipped: ss_plog, sec_debug/tima regions,
+ * not changed: /chosen (stock stdout-path serial0, bootargs rcupdate.rcu_expedited=1), skipped: input_booster.
  */
 
 /*
