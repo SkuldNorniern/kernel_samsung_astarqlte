@@ -44,6 +44,9 @@ static unsigned int bufsiz = 1024;
 module_param(bufsiz, uint, 0444);
 MODULE_PARM_DESC(bufsiz, "data bytes in biggest supported SPI message");
 
+/* upper bound for user-sized VDM and image transfers (kzalloc'd per call) */
+#define ETSPI_MAX_XFER_LEN (1024 * 1024)
+
 void etspi_pin_control(struct etspi_data *etsspi, bool pin_set)
 {
 	int status = 0;
@@ -426,6 +429,10 @@ static long etspi_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case FP_VDM_READ:
 		pr_debug("%s FP_VDM_READ\n", __func__);
+		if (ioc->len > ETSPI_MAX_XFER_LEN) {
+			retval = -EINVAL;
+			break;
+		}
 		retval = etspi_io_vdm_read(etspi, ioc);
 		if (retval < 0) {
 			pr_err("%s FP_VDM_READ error retval = %d\n"
@@ -436,6 +443,10 @@ static long etspi_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case FP_VDM_WRITE:
 		pr_debug("%s FP_VDM_WRITE\n", __func__);
+		if (ioc->len > ETSPI_MAX_XFER_LEN) {
+			retval = -EINVAL;
+			break;
+		}
 		retval = etspi_io_vdm_write(etspi, ioc);
 		if (retval < 0) {
 			pr_err("%s FP_VDM_WRITE error retval = %d\n"
@@ -451,6 +462,10 @@ static long etspi_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		fr = ioc->rx_buf;
 		pr_debug("%s FP_GET_ONE_IMG\n", __func__);
 
+		if (ioc->len > ETSPI_MAX_XFER_LEN) {
+			retval = -EINVAL;
+			break;
+		}
 		retval = etspi_io_get_frame(etspi, fr, ioc->len);
 		if (retval < 0) {
 			pr_err("%s FP_GET_ONE_IMG error retval = %d\n"
