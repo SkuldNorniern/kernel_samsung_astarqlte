@@ -1794,6 +1794,13 @@ static int sm5705_charger_remove(struct platform_device *pdev)
 	free_irq(charger->irq_done, charger);
 	free_irq(charger->irq_otgfail, charger);
 	destroy_workqueue(charger->wqueue);
+#if defined(SM5705_SW_SOFT_START)
+	wake_lock_destroy(&charger->softstart_wake_lock);
+#endif
+	wake_lock_destroy(&charger->wpc_wake_lock);
+	wake_lock_destroy(&charger->afc_wake_lock);
+	wake_lock_destroy(&charger->check_slow_wake_lock);
+	wake_lock_destroy(&charger->aicl_wake_lock);
 	power_supply_unregister(charger->psy_chg);
 	mutex_destroy(&charger->charger_mutex);
 	kfree(charger);
