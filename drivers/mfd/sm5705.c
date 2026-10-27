@@ -310,6 +310,7 @@ err_mfd:
 	mfd_remove_devices(sm5705->dev);
 	sm5705_irq_exit(sm5705);
 err_irq_init:
+	irq_free_descs(pdata->irq_base, SM5705_MAX_IRQ);
 	mutex_destroy(&sm5705->i2c_lock);
 err:
 	kfree(sm5705);
@@ -322,6 +323,7 @@ static int sm5705_i2c_remove(struct i2c_client *i2c)
 
 	mfd_remove_devices(sm5705->dev);
 	sm5705_irq_exit(sm5705);
+	irq_free_descs(sm5705->pdata->irq_base, SM5705_MAX_IRQ);
 	kfree(sm5705);
 
 	return 0;
