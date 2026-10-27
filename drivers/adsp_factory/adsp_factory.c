@@ -574,6 +574,9 @@ static void __exit factory_adsp_exit(void)
 		mutex_destroy(&data->raw_stream_lock[i]);
 	}
 	mutex_destroy(&data->remove_sysfs_mutex);
+	netlink_kernel_release(data->adsp_skt);
+	kfree(data);
+	data = NULL;
 	pr_info("[FACTORY] %s\n", __func__);
 }
 
