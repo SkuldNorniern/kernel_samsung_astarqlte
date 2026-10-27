@@ -40,8 +40,11 @@ int fingerprint_register(struct device *dev, void *drvdata,
 
 	if (!fingerprint_class) {
 		fingerprint_class = class_create(THIS_MODULE, "fingerprint");
-		if (IS_ERR(fingerprint_class))
-			return PTR_ERR(fingerprint_class);
+		if (IS_ERR(fingerprint_class)) {
+			ret = PTR_ERR(fingerprint_class);
+			fingerprint_class = NULL;
+			return ret;
+		}
 	}
 
 	dev = device_create(fingerprint_class, NULL, 0, drvdata, "%s", name);
@@ -79,13 +82,17 @@ EXPORT_SYMBOL_GPL(destroy_fingerprint_class);
 
 static int __init fingerprint_class_init(void)
 {
+	int ret;
+
 	pr_info("%s\n", __func__);
 	fingerprint_class = class_create(THIS_MODULE, "fingerprint");
 
 	if (IS_ERR(fingerprint_class)) {
 		pr_err("%s, create fingerprint_class is failed.\n",
 			__func__);
-		return PTR_ERR(fingerprint_class);
+		ret = PTR_ERR(fingerprint_class);
+		fingerprint_class = NULL;
+		return ret;
 	}
 
 	fingerprint_class->dev_uevent = NULL;
