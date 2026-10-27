@@ -377,8 +377,7 @@ int etspi_write_register(struct etspi_data *etspi, u8 addr, u8 buf)
 	status = spi_sync(etspi->spi, &m);
 
 	if (status == 0) {
-		DEBUG_PRINT("%s address = %x result = %x %x\n"
-					__func__, addr, result[1], result[2]);
+		DEBUG_PRINT("%s address = %x data = %x\n", __func__, addr, buf);
 	} else {
 		pr_err("%s read data error status = %d\n", __func__, status);
 	}
@@ -409,8 +408,7 @@ int etspi_read_register(struct etspi_data *etspi, u8 addr, u8 *buf)
 
 	if (status == 0) {
 		*buf = result[2];
-		DEBUG_PRINT("%s address = %x result = %x %x\n"
-					__func__, addr, result[1], result[2]);
+		DEBUG_PRINT("%s address = %x result = %x\n", __func__, addr, result[2]);
 	} else {
 		pr_err("%s read data error status = %d\n", __func__, status);
 	}
