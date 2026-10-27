@@ -448,6 +448,42 @@ void typec_role_swap_check(struct work_struct *wk)
 	}
 }
 
+#if defined(CONFIG_TYPEC)
+/* typec class data/power role set (sysfs data_role / power_role). Maps to the
+ * stock S2MM005 role swap uVDM: cmd 0 = PR_SWAP, cmd 1 = DR_SWAP. */
+int s2mm005_dr_set(const struct typec_capability *cap, enum typec_data_role role)
+{
+	struct s2mm005_data *usbpd_data;
+
+	if (!cap)
+		return -EINVAL;
+	usbpd_data = container_of(cap, struct s2mm005_data, typec_cap);
+
+	if (role == usbpd_data->typec_data_role)
+		return 0;
+	pr_info("%s : DR_SWAP request, data_role=%d -> %d\n", __func__,
+		usbpd_data->typec_data_role, role);
+	send_role_swap_message(usbpd_data, 1);
+	return 0;
+}
+
+int s2mm005_pr_set(const struct typec_capability *cap, enum typec_role role)
+{
+	struct s2mm005_data *usbpd_data;
+
+	if (!cap)
+		return -EINVAL;
+	usbpd_data = container_of(cap, struct s2mm005_data, typec_cap);
+
+	if (role == usbpd_data->typec_power_role)
+		return 0;
+	pr_info("%s : PR_SWAP request, power_role=%d -> %d\n", __func__,
+		usbpd_data->typec_power_role, role);
+	send_role_swap_message(usbpd_data, 0);
+	return 0;
+}
+#endif
+
 int s2mm005_port_type_set(const struct typec_capability *cap, enum typec_port_type port_type)
 {
 	struct s2mm005_data *usbpd_data = container_of(cap, struct s2mm005_data, typec_cap);

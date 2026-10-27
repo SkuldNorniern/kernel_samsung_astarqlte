@@ -69,6 +69,10 @@ extern int dual_role_is_writeable(struct dual_role_phy_instance *drp,
 #elif defined(CONFIG_TYPEC)
 void typec_role_swap_check(struct work_struct *wk);
 int s2mm005_port_type_set(const struct typec_capability *cap, enum typec_port_type port_type);
+#if defined(CONFIG_TYPEC)
+int s2mm005_dr_set(const struct typec_capability *cap, enum typec_data_role role);
+int s2mm005_pr_set(const struct typec_capability *cap, enum typec_role role);
+#endif
 int s2mm005_get_pd_support(struct s2mm005_data *usbpd_data);
 #endif
 extern void dp_detach(void *data);

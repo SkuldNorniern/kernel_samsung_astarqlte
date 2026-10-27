@@ -1043,6 +1043,8 @@ static int s2mm005_usbpd_probe(struct i2c_client *i2c,
 	usbpd_data->typec_cap.pd_revision = 0x300;
 	usbpd_data->typec_cap.prefer_role = TYPEC_NO_PREFERRED_ROLE;
 	usbpd_data->typec_cap.port_type_set = s2mm005_port_type_set;
+	usbpd_data->typec_cap.dr_set = s2mm005_dr_set;
+	usbpd_data->typec_cap.pr_set = s2mm005_pr_set;
 	usbpd_data->typec_cap.type = TYPEC_PORT_DRP;
 	usbpd_data->port = typec_register_port(usbpd_data->dev, &usbpd_data->typec_cap);
 	if (IS_ERR(usbpd_data->port))
