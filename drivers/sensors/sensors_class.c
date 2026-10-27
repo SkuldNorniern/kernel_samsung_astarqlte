@@ -452,7 +452,7 @@ static ssize_t sensors_calibrate_store(struct device *dev,
 }
 
 #ifndef CONFIG_MACH_ASUS_SDM660
-static struct device_attribute sensors_class_attrs[] = {
+static struct device_attribute sensors_class_attrs[] __maybe_unused = {
 	__ATTR(name, 0444, sensors_name_show, NULL),
 	__ATTR(vendor, 0444, sensors_vendor_show, NULL),
 	__ATTR(version, 0444, sensors_version_show, NULL),
