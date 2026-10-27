@@ -261,7 +261,7 @@ int sm5705_irq_init(struct sm5705_dev *sm5705)
      return 0;
     }
 
-    if (!sm5705->irq_base) {
+    if (sm5705->irq_base < 0) {
      dev_err(sm5705->dev, "No interrupt base specified.\n");
      return -EINVAL;
     }
