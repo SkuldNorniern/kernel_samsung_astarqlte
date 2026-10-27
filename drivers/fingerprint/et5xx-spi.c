@@ -718,56 +718,46 @@ int etspi_platformInit(struct etspi_data *etspi)
 	int status = 0;
 
 	pr_info("%s\n", __func__);
-	/* gpio setting for ldo, ldo2, sleep, drdy pin */
-	if (etspi != NULL) {
-		etspi->drdy_irq_flag = DRDY_IRQ_DISABLE;
+	if (etspi == NULL)
+		return -EFAULT;
 
-		if (etspi->ldo_pin) {
-			status = gpio_request(etspi->ldo_pin, "etspi_ldo_en");
-			if (status < 0) {
-				pr_err("%s gpio_request etspi_ldo_en failed\n",
-					__func__);
-				goto etspi_platformInit_ldo_failed;
-			}
-			gpio_direction_output(etspi->ldo_pin, 0);
-		}
-		status = gpio_request(etspi->sleepPin, "etspi_sleep");
+	/* gpio setting for ldo, sleep, drdy pin */
+	etspi->drdy_irq_flag = DRDY_IRQ_DISABLE;
+
+	if (etspi->ldo_pin) {
+		status = gpio_request(etspi->ldo_pin, "etspi_ldo_en");
 		if (status < 0) {
-			pr_err("%s gpio_requset etspi_sleep failed\n",
+			pr_err("%s gpio_request etspi_ldo_en failed\n",
 				__func__);
-			goto etspi_platformInit_sleep_failed;
+			goto etspi_platformInit_failed;
 		}
-
-		gpio_direction_output(etspi->sleepPin, 0);
-		if (status < 0) {
-			pr_err("%s gpio_direction_output SLEEP failed\n",
-					__func__);
-			status = -EBUSY;
-			goto etspi_platformInit_sleep_failed;
-		}
-
-		status = gpio_request(etspi->drdyPin, "etspi_drdy");
-		if (status < 0) {
-			pr_err("%s gpio_request etspi_drdy failed\n",
-				__func__);
-			goto etspi_platformInit_drdy_failed;
-		}
-
-		status = gpio_direction_input(etspi->drdyPin);
-		if (status < 0) {
-			pr_err("%s gpio_direction_input DRDY failed\n",
-				__func__);
-			goto etspi_platformInit_gpio_init_failed;
-		}
-
-		pr_info("%s sleep value =%d\n"
-				"%s ldo en value =%d\n",
-				__func__, gpio_get_value(etspi->sleepPin),
-				__func__, gpio_get_value(etspi->ldo_pin));
-	} else {
-		status = -EFAULT;
+		gpio_direction_output(etspi->ldo_pin, 0);
 	}
 
+	status = gpio_request(etspi->sleepPin, "etspi_sleep");
+	if (status < 0) {
+		pr_err("%s gpio_requset etspi_sleep failed\n", __func__);
+		goto etspi_platformInit_free_ldo;
+	}
+	gpio_direction_output(etspi->sleepPin, 0);
+
+	status = gpio_request(etspi->drdyPin, "etspi_drdy");
+	if (status < 0) {
+		pr_err("%s gpio_request etspi_drdy failed\n", __func__);
+		goto etspi_platformInit_free_sleep;
+	}
+
+	status = gpio_direction_input(etspi->drdyPin);
+	if (status < 0) {
+		pr_err("%s gpio_direction_input DRDY failed\n", __func__);
+		goto etspi_platformInit_free_drdy;
+	}
+
+	pr_info("%s sleep value =%d\n"
+			"%s ldo en value =%d\n",
+			__func__, gpio_get_value(etspi->sleepPin),
+			__func__, etspi->ldo_pin ?
+				gpio_get_value(etspi->ldo_pin) : 0);
 
 #ifdef ENABLE_SENSORS_FPRINT_SECURE
 	etspi->fp_spi_lock = wakeup_source_register(NULL, "etspi_wake_lock");
@@ -776,14 +766,16 @@ int etspi_platformInit(struct etspi_data *etspi)
 				"etspi_sigwake_lock");
 
 	pr_info("%s successful status=%d\n", __func__, status);
-	return status;
-etspi_platformInit_gpio_init_failed:
+	return 0;
+
+etspi_platformInit_free_drdy:
 	gpio_free(etspi->drdyPin);
-etspi_platformInit_drdy_failed:
+etspi_platformInit_free_sleep:
 	gpio_free(etspi->sleepPin);
-etspi_platformInit_sleep_failed:
-	gpio_free(etspi->ldo_pin);
-etspi_platformInit_ldo_failed:
+etspi_platformInit_free_ldo:
+	if (etspi->ldo_pin)
+		gpio_free(etspi->ldo_pin);
+etspi_platformInit_failed:
 	pr_err("%s is failed\n", __func__);
 	return status;
 }
