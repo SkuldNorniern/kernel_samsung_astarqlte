@@ -1358,3 +1358,83 @@
 	/delete-node/ qcom,camera@2;
 	/delete-node/ qcom,camera@3;
 };
+
+/*
+ * Camera pinctrl as stock A8 Star r07. MCLK0 and MCLK2 drive 4 mA. The
+ * MCLK suspend states park the clock pin as gpio low. The rear_sub pair
+ * (gpio48) is missing from the 4.19 set, so it is added here.
+ */
+&tlmm {
+	cam_sensor_rear_sub_active: cam_sensor_rear_sub_active {
+		mux {
+			pins = "gpio48";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio48";
+			bias-disable;
+			drive-strength = <2>;
+			output-low;
+		};
+	};
+
+	cam_sensor_rear_sub_suspend: cam_sensor_rear_sub_suspend {
+		mux {
+			pins = "gpio48";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio48";
+			bias-disable;
+			drive-strength = <2>;
+		};
+	};
+};
+
+&cam_sensor_mclk0_active {
+	config {
+		drive-strength = <4>;
+	};
+};
+
+&cam_sensor_mclk0_suspend {
+	mux {
+		function = "gpio";
+	};
+
+	config {
+		drive-strength = <4>;
+		output-low;
+	};
+};
+
+&cam_sensor_mclk2_active {
+	config {
+		drive-strength = <4>;
+	};
+};
+
+&cam_sensor_mclk2_suspend {
+	mux {
+		function = "gpio";
+	};
+
+	config {
+		drive-strength = <4>;
+		output-low;
+	};
+};
+
+&cam_sensor_rear_active {
+	config {
+		output-low;
+	};
+};
+
+&cam_sensor_front_active {
+	config {
+		output-low;
+	};
+};
