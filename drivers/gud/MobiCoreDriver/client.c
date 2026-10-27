@@ -1285,9 +1285,9 @@ static struct cbuf *cbuf_get_by_addr(struct tee_client *client, uintptr_t addr)
 			candidate->addr : candidate->uaddr;
 		uintptr_t end = start + candidate->len;
 
-		/* Check that (user) cbuf has not been unmapped */
+		/* Skip (user) cbuf that has been unmapped, others may match */
 		if (!start)
-			break;
+			continue;
 
 		if ((addr >= start) && (addr < end)) {
 			cbuf = candidate;
