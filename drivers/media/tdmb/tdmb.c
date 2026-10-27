@@ -386,9 +386,10 @@ static int tdmb_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	vma->vm_flags |= VM_RESERVED;
 	size = vma->vm_end - vma->vm_start;
-	if (size > TDMB_RING_BUFFER_MAPPING_SIZE) {
-		DPRINTK("over size given : %lx\n", size);
-		return -EAGAIN;
+	/* the ring is always mapped at its full size, so the vma must match */
+	if (size != TDMB_RING_BUFFER_MAPPING_SIZE) {
+		DPRINTK("bad mapping size : %lx\n", size);
+		return -EINVAL;
 	}
 	DPRINTK("size given : %lx\n", size);
 
