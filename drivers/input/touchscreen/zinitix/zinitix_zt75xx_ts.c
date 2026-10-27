@@ -41,7 +41,7 @@
 #elif defined(CONFIG_DRV_SAMSUNG)
 #include <linux/sec_class.h>
 #else
-extern struct class *sec_class;
+#include <linux/sec_class.h>
 #endif
 
 #include <linux/input/sec_cmd.h>
@@ -8237,9 +8237,11 @@ static int init_sec_factory(struct bt532_ts_info *info)
 		factory_tk_dev = sec_device_create( SEC_CLASS_DEVT_TKEY,
 						NULL, SEC_CLASS_DEV_NAME_TKEY);
 #else
-		factory_tk_dev = device_create(sec_class, NULL,
-					     (dev_t) (size_t) (&info->client->dev),
-					     NULL, SEC_CLASS_DEV_NAME_TKEY);
+		ret = sec_class_get();
+		factory_tk_dev = ret ? ERR_PTR(ret) :
+			device_create(sec_class, NULL,
+				     (dev_t) (size_t) (&info->client->dev),
+				     NULL, SEC_CLASS_DEV_NAME_TKEY);
 #endif
 		if (IS_ERR(factory_tk_dev)) {
 			input_err(true, &info->client->dev, "Failed to create factory dev\n");
