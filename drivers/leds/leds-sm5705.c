@@ -352,10 +352,9 @@ static inline int _fled_turn_on_torch(struct sm5705_fled_info *sm5705_fled, int 
 	int ret;
 	pr_debug("%s: FLED[%d] Torch turn-on done.\n", __func__, index);
 
-	gpio_set_value(pdata->led[index].flash_en_pin, 0);
-	gpio_set_value(pdata->led[index].torch_en_pin, 1);
-
 	if (pdata->led[index].used_gpio) {
+		gpio_set_value(pdata->led[index].flash_en_pin, 0);
+		gpio_set_value(pdata->led[index].torch_en_pin, 1);
 		ret = sm5705_FLEDx_mode_enable(sm5705_fled, index, SM5705_FLED_ON_EXTERNAL_CONTROL_MODE);
 		if (ret < 0) {
 			dev_err(dev, "%s: fail to set FLED[%d] External control mode\n", __func__, index);
