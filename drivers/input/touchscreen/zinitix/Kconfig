@@ -5,6 +5,7 @@
 config TOUCHSCREEN_ZINITIX_ZT75XX_TCLM
 	bool "ZINITIX ZT75XX touchscreen driver"
 	depends on I2C
+	select TOUCHSCREEN_SEC_CMD_HELPERS
 	default n
 	help
 	  Say Y here if you have a ZINITIX ZT75XX touchscreen.
@@ -18,3 +19,7 @@ config INPUT_TOUCHSCREEN_TCLMV2
 	  Enables the TCLM (touch calibration) concept in the ZINITIX driver
 	  and builds the sec_tclm_v2 helper.
 	  If unsure, say N.
+
+# sec_cmd / sec_tclm_v2 / sec_class: shared by zinitix and sec_ts
+config TOUCHSCREEN_SEC_CMD_HELPERS
+	bool

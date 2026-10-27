@@ -1333,4 +1333,6 @@ source "drivers/input/touchscreen/NVT_Touch_X00TD/Kconfig"
 
 source "drivers/input/touchscreen/zinitix/Kconfig"
 
+source "drivers/input/touchscreen/sec_ts/Kconfig"
+
 endif
