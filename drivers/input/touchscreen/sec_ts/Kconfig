@@ -20,6 +20,16 @@ config TOUCHSCREEN_SEC_TS
           To compile this driver as a module, choose M here: the
           module will be called sec_ts.
 
+config TOUCHSCREEN_SEC_TS_ALLOW_FW_WRITE
+	bool "Allow sec_ts chip flash/NVM/calibration writes"
+	depends on TOUCHSCREEN_SEC_TS
+	default n
+	help
+	  Firmware/bootloader flashing (probe, sysfs fw_update, UMS/FFU),
+	  NVM writes (set nvm, TCLM) and force calibration are refused with
+	  -EPERM unless this is set. Off by default: an interrupted write
+	  can brick the controller. Reads are not affected.
+
 config TOUCHSCREEN_SEC_TS_GLOVEMODE
         tristate "Samsung Electronics Touchscreen"
         depends on I2C

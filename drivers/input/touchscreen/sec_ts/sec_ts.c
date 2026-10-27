@@ -413,6 +413,10 @@ int sec_ts_i2c_write(struct sec_ts_data *ts, u8 reg, u8 *data, int len)
 	struct i2c_msg msg;
 	int i;
 
+	/* NVM opcode: 3+ bytes is a write (set nvm, TCLM), 2 bytes is read setup */
+	if (reg == SEC_TS_CMD_NVM && len >= 3 && !sec_ts_chip_write_allowed())
+		return -EPERM;
+
 #ifdef CONFIG_SECURE_TOUCH
 	if (atomic_read(&ts->secure_enabled) == SECURE_TOUCH_ENABLE) {
 		input_err(true, &ts->client->dev,
@@ -2352,7 +2356,8 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 
 #ifdef SEC_TS_FW_UPDATE_ON_PROBE
 	ret = sec_ts_firmware_update_on_probe(ts, force_update);
-	if (ret < 0)
+	/* writes disabled: skip the update, keep probing */
+	if (ret < 0 && !(ret == -EPERM && !sec_ts_chip_write_allowed()))
 		goto err_init;
 #else
 	input_info(true, &ts->client->dev, "%s: fw update on probe disabled!\n", __func__);

@@ -5407,6 +5407,9 @@ int sec_ts_execute_force_calibration(struct sec_ts_data *ts, int cal_mode)
 
 	input_info(true, &ts->client->dev, "%s: %d\n", __func__, cal_mode);
 
+	if (!sec_ts_chip_write_allowed())
+		return -EPERM;
+
 	if (cal_mode == OFFSET_CAL_SEC)
 		cmd = SEC_TS_CMD_FACTORY_PANELCALIBRATION;
 	else if (cal_mode == AMBIENT_CAL)

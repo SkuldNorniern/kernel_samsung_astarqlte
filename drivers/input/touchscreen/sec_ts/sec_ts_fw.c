@@ -584,6 +584,9 @@ static int sec_ts_firmware_update(struct sec_ts_data *ts, const u8 *data,
 	u8 *fd = (u8 *)data;
 	u8 tBuff[3];
 
+	if (!sec_ts_chip_write_allowed())
+		return -EPERM;
+
 	/* Check whether CRC is appended or not.
 	 * Enter Firmware Update Mode
 	 */
@@ -687,6 +690,9 @@ int sec_ts_firmware_update_bl(struct sec_ts_data *ts)
 	char fw_path[SEC_TS_MAX_FW_PATH];
 	int result = -1;
 
+	if (!sec_ts_chip_write_allowed())
+		return -EPERM;
+
 	disable_irq(ts->client->irq);
 
 	snprintf(fw_path, SEC_TS_MAX_FW_PATH, "%s", SEC_TS_DEFAULT_BL_NAME);
@@ -715,6 +721,9 @@ int sec_ts_bl_update(struct sec_ts_data *ts)
 	int ret;
 	u8 tCmd[5] = { 0xDE, 0xAD, 0xBE, 0xEF };
 	u8 tBuff[3];
+
+	if (!sec_ts_chip_write_allowed())
+		return -EPERM;
 
 	ret = ts->sec_ts_i2c_write(ts, SEC_TS_READ_BL_UPDATE_STATUS, tCmd, 4);
 	if (ret < 0) {
@@ -764,6 +773,9 @@ int sec_ts_firmware_update_on_probe(struct sec_ts_data *ts, bool force_update)
 	int ii = 0;
 	int ret = 0;
 	int skip_firmup = 0;
+
+	if (!sec_ts_chip_write_allowed())
+		return -EPERM;
 
 #ifdef TCLM_CONCEPT
 	if (ts->tdata->support_tclm_test) {
@@ -1039,6 +1051,9 @@ err_request_fw:
 int sec_ts_firmware_update_on_hidden_menu(struct sec_ts_data *ts, int update_type)
 {
 	int ret = 0;
+
+	if (!sec_ts_chip_write_allowed())
+		return -EPERM;
 
 	/* Factory cmd for firmware update
 	 * argument represent what is source of firmware like below.
