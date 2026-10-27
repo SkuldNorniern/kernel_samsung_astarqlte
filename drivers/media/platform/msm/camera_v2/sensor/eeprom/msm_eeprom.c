@@ -175,7 +175,12 @@ static void msm_eeprom_get_module_id(struct msm_eeprom_ctrl_t *e_ctrl)
 	}
 #endif
 #if defined(CONFIG_GET_FRONT_MODULE_ID)
+#if defined(CONFIG_CAMERA_DUAL_REAR)
+	/* dual rear: eeprom@51 is rear2, so the front eeprom is subdev 2 */
+	if (e_ctrl->subdev_id == 2)
+#else
 	if (e_ctrl->subdev_id == 1)
+#endif
 		msm_camera_sysfs_set_module_id(true,
 			&cal->mapdata[FROM_MODULE_ID_ADDR], FROM_MODULE_ID_SIZE);
 #endif
