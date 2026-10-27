@@ -536,7 +536,7 @@ int s2mm005_flash_fw(struct s2mm005_data *usbpd_data, unsigned int input)
 		msleep(200);
 		ret = s2mm005_flash(usbpd_data, input);
 		if (ret < 0)
-			return ret;	
+			pr_err("%s: flash write failed %d, leaving flash mode\n", __func__, ret);
 		usleep_range(10 * 1000, 10 * 1000);
 		s2mm005_flash(usbpd_data, FLASH_MODE_EXIT);
 		usleep_range(10 * 1000, 10 * 1000);
@@ -558,7 +558,7 @@ int s2mm005_flash_fw(struct s2mm005_data *usbpd_data, unsigned int input)
 		msleep(200);
 		ret = s2mm005_flash(usbpd_data, input);
 		if (ret < 0)
-			panic("infinite write fail!\n");
+			pr_err("%s: firmware write failed %d, leaving flash mode\n", __func__, ret);
 		usleep_range(10 * 1000, 10 * 1000);
 		s2mm005_flash(usbpd_data, FLASH_MODE_EXIT);
 		usleep_range(10 * 1000, 10 * 1000);
@@ -573,5 +573,5 @@ int s2mm005_flash_fw(struct s2mm005_data *usbpd_data, unsigned int input)
 	}
 	}
 
-	return 0;
+	return ret;
 }
