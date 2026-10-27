@@ -4,7 +4,7 @@
 #   sudo apt install gcc-9-aarch64-linux-gnu
 # usage: ./build.sh [defconfig]
 set -e
-DEFCONFIG=${1:-vendor/asus/X00TD_defconfig}   # until astarqlte_defconfig exists
+DEFCONFIG=${1:-vendor/samsung/astarqlte_defconfig}
 export ARCH=arm64
 M="O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-"
 make $M "$DEFCONFIG"
