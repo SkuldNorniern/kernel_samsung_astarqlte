@@ -647,6 +647,18 @@ source "drivers/misc/ocxl/Kconfig"
 source "drivers/misc/cardreader/Kconfig"
 source "drivers/misc/fpr_FingerprintCard/Kconfig"
 source "drivers/misc/qrc/Kconfig"
+
+config SAMSUNG_JACK
+	bool "3.5 PI Jack driver for Samsung devices"
+	depends on INPUT
+	default n
+	help
+	 This is 3.5 PI JACK driver for Samsung devices.
+	 sec_jack from samsung driver used for samsung devices.
+
+	 To samsung jack is reviewed and supported in all the
+	 samsung devices.
+
 endmenu
 
 config OKL4_USER_VIPC

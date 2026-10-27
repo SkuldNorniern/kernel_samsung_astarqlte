@@ -78,3 +78,5 @@ obj-$(CONFIG_QTI_XR_SMRTVWR_MISC) += qxr-stdalonevwr.o
 obj-$(CONFIG_FPR_FPC)		+= fpr_FingerprintCard/
 obj-y                           += qrc/
 obj-$(CONFIG_KINECTICS_XR_NORDIC) += kxrctrl/
+# Samsung Jack
+obj-$(CONFIG_SAMSUNG_JACK)	+= sec_jack.o
