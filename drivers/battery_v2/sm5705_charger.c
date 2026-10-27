@@ -1744,19 +1744,23 @@ static int sm5705_charger_probe(struct platform_device *pdev)
 	ret = request_threaded_irq(charger->irq_done, NULL, sm5705_chg_done_isr, 0, "done-irq", charger);
 	if (ret < 0) {
 		pr_err("fail to request chgin IRQ: %d: %d\n", charger->irq_done, ret);
-		goto err_power_supply_register_otg;
+		goto err_free_vbus_irq;
 	}
 
 	ret = request_threaded_irq(charger->irq_otgfail, NULL, sm5705_chg_otg_fail_isr, 0, "otgfail-irq", charger);
 	if (ret < 0) {
 		pr_err("fail to request otgfail IRQ: %d: %d\n", charger->irq_otgfail, ret);
-		goto err_power_supply_register_otg;
+		goto err_free_done_irq;
 	}
 
 	pr_info("SM5705 Charger Driver Loaded Done\n");
 
 	return 0;
 
+err_free_done_irq:
+	free_irq(charger->irq_done, charger);
+err_free_vbus_irq:
+	free_irq(charger->irq_vbus_pok, charger);
 err_power_supply_register_otg:
 	power_supply_unregister(charger->psy_otg);
 err_power_supply_register_chg:
