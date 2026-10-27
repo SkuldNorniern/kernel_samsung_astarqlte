@@ -273,6 +273,9 @@ int sec_bat_get_adc_data(struct sec_battery_info *battery,
 		adc_total += adc_data;
 	}
 
+	if (count < 3)
+		return count > 0 ? adc_total / count : 0;
+
 	return (adc_total - adc_max - adc_min) / (count - 2);
 err:
 	return adc_data;
