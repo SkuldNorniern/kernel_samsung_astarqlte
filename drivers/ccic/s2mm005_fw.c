@@ -305,7 +305,6 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 	int retry = 0;
 	struct s2mm005_fw *fw_hd;
 	struct file *fp;
-	mm_segment_t old_fs;
 	long fw_size, nread;
 	int irq_gpio_status;
 	FLASH_STATE_Type Flash_DATA;
@@ -365,14 +364,11 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 		break;
 	}
 	case FLASH_WRITE_UMS: {
-		old_fs = get_fs();
-		set_fs(KERNEL_DS);
 		fp = filp_open(CCIC_DEFAULT_UMS_FW, O_RDONLY, S_IRUSR);
 		if (IS_ERR(fp)) {
 			pr_err("%s: failed to open %s.\n", __func__,
 				      CCIC_DEFAULT_UMS_FW);
 			ret = -ENOENT;
-			set_fs(old_fs);
 			return ret;
 		}
 
@@ -383,10 +379,9 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 			if (!fw_data) {
 				ret = -ENOMEM;
 				filp_close(fp, NULL);
-				set_fs(old_fs);
 				return ret;
 			}
-			nread = vfs_read(fp, (char __user *)fw_data,
+			nread = kernel_read(fp, fw_data,
 					 fw_size, &fp->f_pos);
 
 			pr_err("%s: start, file path %s, size %ld Bytes\n",
@@ -416,7 +411,6 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 		}
 
 		filp_close(fp, NULL);
-		set_fs(old_fs);
 		break;
 	}
 	case FLASH_MODE_EXIT: { /* exit flash mode */
