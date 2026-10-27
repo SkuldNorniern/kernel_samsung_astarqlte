@@ -308,6 +308,7 @@ static int sm5705_i2c_probe(struct i2c_client *i2c,
 
 err_mfd:
 	mfd_remove_devices(sm5705->dev);
+	sm5705_irq_exit(sm5705);
 err_irq_init:
 	mutex_destroy(&sm5705->i2c_lock);
 err:
@@ -320,6 +321,7 @@ static int sm5705_i2c_remove(struct i2c_client *i2c)
 	struct sm5705_dev *sm5705 = i2c_get_clientdata(i2c);
 
 	mfd_remove_devices(sm5705->dev);
+	sm5705_irq_exit(sm5705);
 	kfree(sm5705);
 
 	return 0;
