@@ -1329,6 +1329,11 @@ static int tdmb_remove(struct platform_device *pdev)
 	regulator_put(dt_pdata->tdmb_vreg);
 #endif
 
+#ifdef TDMB_WAKE_LOCK_ENABLE
+	wakeup_source_unregister(tdmb_wlock);
+	tdmb_wlock = NULL;
+#endif
+	tdmb_destroy_chrdev();
 	tdmbdrv_data = NULL;
 	return 0;
 }
@@ -1380,18 +1385,7 @@ static void __exit tdmb_exit(void)
 		ts_ring = 0;
 	}
 #endif
-	unregister_chrdev(TDMB_DEV_MAJOR, "tdmb");
-	device_destroy(tdmb_class, MKDEV(TDMB_DEV_MAJOR, TDMB_DEV_MINOR));
-	class_destroy(tdmb_class);
-
 	platform_driver_unregister(&tdmb_driver);
-
-#ifdef TDMB_WAKE_LOCK_ENABLE
-#if defined(CONFIG_TDMB_QUALCOMM)
-	pm_qos_remove_request(&tdmb_pm_qos_req);
-#endif
-	wakeup_source_unregister(tdmb_wlock);
-#endif
 }
 
 module_init(tdmb_init);
