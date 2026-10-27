@@ -696,8 +696,9 @@ static int muic_handle_ccic_RID(muic_data_t *pmuic, CC_NOTI_RID_TYPEDEF *pnoti)
 		vbus = mdev_get_vbus(pmuic);
 		if (pdesc->ccic_evt_attached == MUIC_CCIC_NOTI_ATTACH &&
 			mdev_is_valid_RID_OPEN(pmuic, vbus)) {
-			if (pmuic->pdata->jig_uart_cb)
+			if (pmuic->pdata->jig_uart_cb) {
 				pmuic->pdata->jig_uart_cb(0);
+			}
 				/*
 				 * USB team's requirement.
 				 * Set AP USB for enumerations.
