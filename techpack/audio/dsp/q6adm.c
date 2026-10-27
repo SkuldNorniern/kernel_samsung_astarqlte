@@ -13,6 +13,9 @@
 #include <dsp/msm-dts-srs-tm-config.h>
 #include <dsp/apr_audio-v2.h>
 #include <dsp/q6adm-v2.h>
+#ifdef CONFIG_SEC_SND_ADAPTATION
+#include <dsp/sec_adaptation.h>
+#endif /* CONFIG_SEC_SND_ADAPTATION */
 #include <dsp/q6audio-v2.h>
 #include <dsp/q6afe-v2.h>
 #include <dsp/q6core.h>
@@ -3095,7 +3098,16 @@ int adm_open(int port_id, int path, int rate, int channel_mode, int topology,
 		    (rate != ADM_CMD_COPP_OPEN_SAMPLE_RATE_48K))
 			rate = 16000;
 	}
-	if ((topology == VPM_TX_DM_FLUENCE_COPP_TOPOLOGY) ||
+	if (
+#ifdef CONFIG_SEC_SND_ADAPTATION
+	    (topology == VPM_TX_SM_LVVEFQ_COPP_TOPOLOGY) ||
+	    (topology == VPM_TX_DM_LVVEFQ_COPP_TOPOLOGY) ||
+	    (topology == VPM_TX_SM_LVSAFQ_COPP_TOPOLOGY) ||
+	    (topology == VOICE_TX_DIAMONDVOICE_FVSAM_SM) ||
+	    (topology == VOICE_TX_DIAMONDVOICE_FVSAM_DM) ||
+	    (topology == VOICE_TX_DIAMONDVOICE_FVSAM_QM) ||
+#endif /* CONFIG_SEC_SND_ADAPTATION */
+	    (topology == VPM_TX_DM_FLUENCE_COPP_TOPOLOGY) ||
 	    (topology == VPM_TX_DM_RFECNS_COPP_TOPOLOGY)) {
 		if ((rate != ADM_CMD_COPP_OPEN_SAMPLE_RATE_8K) &&
 		    (rate != ADM_CMD_COPP_OPEN_SAMPLE_RATE_16K) &&

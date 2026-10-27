@@ -9,6 +9,7 @@
 #define __SEC_ADAPTATION_H
 
 #include <linux/types.h>
+#include <dsp/apr_audio-v2.h>
 
 #define ADM_MODULE_ID_PP_SS_REC             0x10001050
 #define ADM_PARAM_ID_PP_SS_REC_GETPARAMS    0x10001052
@@ -80,4 +81,110 @@ struct asm_stream_cmd_set_pp_params_sb_rotation {
 	uint32_t sb_rotation;
 } __packed;
 
+/****************************************************************************/
+/*//////////////////////////// VOICE SOLUTION //////////////////////////////*/
+/****************************************************************************/
+/* NXP LVVEFQ */
+#define VPM_TX_SM_LVVEFQ_COPP_TOPOLOGY      0x1000BFF0
+#define VPM_TX_DM_LVVEFQ_COPP_TOPOLOGY      0x1000BFF1
+#define VPM_TX_SM_LVSAFQ_COPP_TOPOLOGY      0x1000BFF4
+/* Fotemeia */
+#define VOICE_TX_DIAMONDVOICE_FVSAM_SM      0x1000110B
+#define VOICE_TX_DIAMONDVOICE_FVSAM_DM      0x1000110A
+#define VOICE_TX_DIAMONDVOICE_FVSAM_QM      0x10001109
+
+#define VOICEPROC_MODULE_VENC				0x00010F07
+#define VOICE_PARAM_LOOPBACK_ENABLE			0x00010E18
+/* Rx */
+#define VOICE_VOICEMODE_MODULE				0x10001001
+#define VOICE_ADAPTATION_SOUND_PARAM        0x10001022
+/* Tx */
+#define VOICE_WISEVOICE_MODULE				0x10001031
+#define VOICE_FVSAM_MODULE					0x10001041
+
+#define VOICE_NBMODE_PARAM					0x10001023
+#define VOICE_SPKMODE_PARAM					0x10001025
+
+#define VOICE_MODULE_SET_DEVICE				0x10041000
+#define VOICE_MODULE_SET_DEVICE_PARAM		0x10041001
+
+struct vss_icommon_cmd_set_ui_property_v2_t {
+	uint32_t module_id;
+	uint16_t instance_id;
+	uint16_t reserved;
+	uint32_t param_id;
+	uint32_t param_size;
+	uint16_t enable;
+	uint16_t reserved_field;
+};
+
+struct vss_icommon_cmd_set_loopback_enable_t {
+	uint32_t module_id;
+	/* Unique ID of the module. */
+	uint32_t param_id;
+	/* Unique ID of the parameter. */
+	uint16_t param_size;
+	/* Size of the parameter in bytes: MOD_ENABLE_PARAM_LEN */
+	uint16_t reserved;
+	/* Reserved; set to 0. */
+	uint16_t loopback_enable;
+	uint16_t reserved_field;
+	/* Reserved, set to 0. */
+};
+
+struct cvs_set_loopback_enable_cmd {
+	struct apr_hdr hdr;
+	uint32_t mem_handle;
+	uint32_t mem_address_lsw;
+	uint32_t mem_address_msw;
+	uint32_t mem_size;
+	struct vss_icommon_cmd_set_loopback_enable_t vss_set_loopback;
+} __packed;
+
+struct cvp_adaptation_sound_parm_send_t {
+	uint32_t module_id;
+	/* Unique ID of the module. */
+	uint32_t param_id;
+	/* Unique ID of the parameter. */
+	uint16_t param_size;
+	/* Size of the parameter in bytes: MOD_ENABLE_PARAM_LEN */
+	uint16_t reserved;
+	/* Reserved; set to 0. */
+	uint16_t eq_mode;
+	uint16_t select;
+	int16_t param[12];
+} __packed;
+
+struct cvp_adaptation_sound_parm_send_cmd {
+	struct apr_hdr hdr;
+	uint32_t mem_handle;
+	uint32_t mem_address_lsw;
+	uint32_t mem_address_msw;
+	uint32_t mem_size;
+	struct cvp_adaptation_sound_parm_send_t adaptation_sound_data;
+} __packed;
+
+struct cvp_set_nbmode_enable_cmd {
+	struct apr_hdr hdr;
+	struct vss_icommon_cmd_set_ui_property_v2_t cvp_set_nbmode;
+} __packed;
+
+struct cvp_set_spkmode_enable_cmd {
+	struct apr_hdr hdr;
+	struct vss_icommon_cmd_set_ui_property_v2_t cvp_set_spkmode;
+} __packed;
+
+struct cvp_set_device_info_cmd {
+	struct apr_hdr hdr;
+	struct vss_icommon_cmd_set_ui_property_v2_t cvp_set_device_info;
+} __packed;
+
+struct common_data;
+struct common_data *voice_get_common_data(void);
+
+void voice_sec_loopback_start_cmd(u32 session_id);
+void voice_sec_loopback_end_cmd(u32 session_id);
+
+
 #endif /* __SEC_ADAPTATION_H */
+
