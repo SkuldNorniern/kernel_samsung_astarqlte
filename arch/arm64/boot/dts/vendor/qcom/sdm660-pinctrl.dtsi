@@ -1138,11 +1138,11 @@
 		wcd_gnd_mic_swap {
 			wcd_gnd_mic_swap_idle: wcd_gnd_mic_swap_idle {
 				mux {
-					pins = "gpio999";
+					pins = "gpio63";
 					function = "gpio";
 				};
 				config {
-					pins = "gpio999";
+					pins = "gpio63";
 					drive-strength = <2>;
 					bias-pull-down;
 					output-low;
@@ -1151,11 +1151,11 @@
 
 			wcd_gnd_mic_swap_active: wcd_gnd_mic_swap_active {
 				mux {
-					pins = "gpio999";
+					pins = "gpio63";
 					function = "gpio";
 				};
 				config {
-					pins = "gpio999";
+					pins = "gpio63";
 					drive-strength = <2>;
 					bias-disable;
 					output-high;
