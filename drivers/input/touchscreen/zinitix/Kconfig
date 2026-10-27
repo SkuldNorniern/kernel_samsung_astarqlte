@@ -9,3 +9,12 @@ config TOUCHSCREEN_ZINITIX_ZT75XX_TCLM
 	help
 	  Say Y here if you have a ZINITIX ZT75XX touchscreen.
 	  If unsure, say N.
+
+config INPUT_TOUCHSCREEN_TCLMV2
+	bool "Samsung TCLM v2 touch calibration"
+	depends on TOUCHSCREEN_ZINITIX_ZT75XX_TCLM
+	default n
+	help
+	  Enables the TCLM (touch calibration) concept in the ZINITIX driver
+	  and builds the sec_tclm_v2 helper.
+	  If unsure, say N.
