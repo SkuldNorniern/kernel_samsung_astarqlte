@@ -679,6 +679,11 @@ int etspi_io_nvm_writeex(struct etspi_data *etspi,
 
 	pr_debug("%s buf(%p) tx_buf(%p) len(%d)\n", __func__,
 			buf, ioc->tx_buf, ioc->len);
+	if (ioc->len > sizeof(buf)) {
+		pr_err("%s nvm write length %u too large\n", __func__,
+			ioc->len);
+		return -EINVAL;
+	}
 	if (copy_from_user(buf, (const u8 __user *) (uintptr_t) ioc->tx_buf
 		, ioc->len)) {
 		pr_err("%s buffer copy_from_user fail\n", __func__);
@@ -693,6 +698,8 @@ int etspi_io_nvm_writeex(struct etspi_data *etspi,
 		pr_debug("%s handle address alignment issue. %d %d\n",
 				__func__, buf[0], ioc->len);
 
+		if (ioc->len > MAX_NVM_LEN + 1)
+			return -EINVAL;
 		r.tx_buf = r.rx_buf = bufr;
 		r.len = ioc->len;
 		if (buf[0] % 2) {
