@@ -343,6 +343,29 @@
 			 <&clock_gcc GCC_BLSP1_QUP4_I2C_APPS_CLK>;
 		zinitix,factory_item_version = <0x4>;
 	};
+
+	sec_ts@48 {
+		status = "okay";
+		compatible = "sec,sec_ts";
+		reg = <0x48>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <67 0x0>;
+		pinctrl-names = "on_state", "off_state";
+		pinctrl-0 = <&tsp_int_active>;
+		pinctrl-1 = <&tsp_int_suspend>;
+		sec,irq_gpio = <&tlmm 67 0x0>;
+		sec,max_coords = <0x870 0xf00>;
+		sec,use_ic_resolution;
+		sec,grip_area = <0x200>;
+		sec,mis_cal_check = <0x1>;
+		sec,use_gpio_ldo;
+		sec,regulator_avdd = "tsp_ldo_en";
+		sec,regulator_boot_on;
+		sec,project_name = "JACKPOT1", "A530";
+		sec,firmware_name = "tsp_sec/y661_a5y18.fw";
+		sec,bringup = <0x1>;
+		sec,tclm_level = <0x1>;
+	};
 };
 
 &i2c_6 {
@@ -944,7 +967,7 @@
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
  * not yet: sm5705 muic (muic-sm5705@25), sm5705 usbldo,
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
- * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
+ * not yet: s2mm005 usb-pd,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
  * not yet: camera flash, tdmb, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
