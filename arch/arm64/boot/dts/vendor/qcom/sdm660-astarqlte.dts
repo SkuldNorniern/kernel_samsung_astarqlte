@@ -1292,6 +1292,24 @@
 };
 
 /*
+ * IPA through the SMMU. In s1 bypass IPA sees physical addresses with a 32-bit
+ * mask; on 4.19 its GFP_DMA buffers are not kept below 4 GB, so every map
+ * needs a swiotlb bounce. With translation the AP and uC banks map any RAM
+ * into their IOVA windows (qcom,iommu-dma-addr-pool).
+ */
+&ipa_hw {
+	/delete-property/ qcom,smmu-s1-bypass;
+};
+
+&ipa_smmu_ap {
+	/delete-property/ qcom,iommu-dma;
+};
+
+&ipa_smmu_uc {
+	/delete-property/ qcom,iommu-dma;
+};
+
+/*
  * Stock r07 nodes not yet ported:
  * skipped: sm5705 usbldo (no stock node or driver), ss_plog, sec_debug/tima
  * regions, input_booster. dfps_data_mem comes from sdm660.dtsi. /chosen kept
