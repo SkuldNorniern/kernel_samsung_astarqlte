@@ -194,6 +194,24 @@
 	};
 };
 
+&i2c_6 {
+	/* The MTP NQ NFC node is not on this board; the NFC chip is a PN547. */
+	/delete-node/ nq@28;
+
+	pn547@2b {
+		compatible = "pn547";
+		reg = <0x2b>;
+		/* Only ven and pvdd sit behind the expander; irq and firm are on tlmm. */
+		pn547,irq-gpio = <&tlmm 40 0x00>;
+		pn547,ven-gpio = <&pcal6524 12 0x00>;
+		pn547,firm-gpio = <&tlmm 80 0x00>;
+		pn547,pvdd-gpio = <&pcal6524 7 0x00>;
+		pn547,nfc_pm_clk;
+		clocks = <&clock_rpmcc RPM_SMD_LN_BB_CLK3_PIN>;
+		clock-names = "rf_clk";
+	};
+};
+
 /*
  * ET5XX fingerprint sensor (etspi) on spi_3. DRDY is tlmm gpio13 and the
  * vendor pin is gpio12, as in stock r07. The stock sleep and LDO enables sit
