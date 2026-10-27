@@ -948,6 +948,10 @@ static int sm5705_fled_parse_dt(struct sm5705_dev *sm5705, struct sm5705_fled_pl
 		return ret;
 	}
 	index = temp;
+	if (index >= SM5705_FLED_MAX) {
+		pr_err("%s : invalid led id %d\n", __func__, index);
+		return -EINVAL;
+	}
 
 	ret = of_property_read_u32(np, "flash-mode-current-mA", &temp);
 	if (ret) {
