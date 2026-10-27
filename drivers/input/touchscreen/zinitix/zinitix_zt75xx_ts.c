@@ -8727,6 +8727,26 @@ static int bt532_pinctrl_configure(struct bt532_ts_info *info, bool active)
 	return 0;
 }
 
+static int bt532_get_supplies(struct device *dev,
+		struct bt532_ts_platform_data *pdata)
+{
+	if (!pdata->gpio_ldo_en) {
+		pdata->dvdd_reg = devm_regulator_get(dev, pdata->regulator_dvdd);
+		if (IS_ERR(pdata->dvdd_reg)) {
+			input_err(true, dev, "%s: Failed to get %s regulator\n",
+				 __func__, pdata->regulator_dvdd);
+			return PTR_ERR(pdata->dvdd_reg);
+		}
+	}
+	pdata->avdd_reg = devm_regulator_get(dev, pdata->regulator_avdd);
+	if (IS_ERR(pdata->avdd_reg)) {
+		input_err(true, dev, "%s: Failed to get %s regulator\n",
+			 __func__, pdata->regulator_avdd);
+		return PTR_ERR(pdata->avdd_reg);
+	}
+	return 0;
+}
+
 static int bt532_power_ctrl(void *data, bool on)
 {
 	struct bt532_ts_info* info = (struct bt532_ts_info*)data;
@@ -8739,20 +8759,11 @@ static int bt532_power_ctrl(void *data, bool on)
 	if (info->tsp_pwr_enabled == on)
 		return retval;
 
-	if (!pdata->gpio_ldo_en) {
-		regulator_dvdd = regulator_get(NULL, pdata->regulator_dvdd);
-		if (IS_ERR(regulator_dvdd)) {
-			input_err(true, dev, "%s: Failed to get %s regulator.\n",
-				 __func__, pdata->regulator_dvdd);
-			return PTR_ERR(regulator_dvdd);
-		}
-	}
-	regulator_avdd = regulator_get(NULL, pdata->regulator_avdd);
-	if (IS_ERR(regulator_avdd)) {
-		input_err(true, dev, "%s: Failed to get %s regulator.\n",
-			 __func__, pdata->regulator_avdd);
-		return PTR_ERR(regulator_avdd);
-	}
+	if (!pdata->avdd_reg || (!pdata->gpio_ldo_en && !pdata->dvdd_reg))
+		return -ENODEV;
+	regulator_avdd = pdata->avdd_reg;
+	if (!pdata->gpio_ldo_en)
+		regulator_dvdd = pdata->dvdd_reg;
 
 	input_info(true, dev, "%s: %s\n", __func__, on ? "on" : "off");
 
@@ -8779,9 +8790,6 @@ static int bt532_power_ctrl(void *data, bool on)
 	}
 
 	info->tsp_pwr_enabled = on;
-	if (!pdata->gpio_ldo_en)
-		regulator_put(regulator_dvdd);
-	regulator_put(regulator_avdd);
 
 	return retval;
 }
@@ -9228,6 +9236,11 @@ static int bt532_ts_probe(struct i2c_client *client,
 			goto error_allocate_tdata;
 
 		sec_tclm_parse_dt(client, tdata);
+
+		/* supplies first: -EPROBE_DEFER before any gpio is requested */
+		ret = bt532_get_supplies(&client->dev, pdata);
+		if (ret)
+			return ret;
 
 		ret = zinitix_init_gpio(pdata);
 		if(ret < 0)

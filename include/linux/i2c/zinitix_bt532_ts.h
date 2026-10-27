@@ -141,6 +141,8 @@ struct bt532_ts_platform_data {
 
 	const char *regulator_dvdd;
 	const char *regulator_avdd;
+	struct regulator *avdd_reg;
+	struct regulator *dvdd_reg;
 	const char *regulator_tkled;
 	const char *firmware_name;
 	const char *chip_name;
