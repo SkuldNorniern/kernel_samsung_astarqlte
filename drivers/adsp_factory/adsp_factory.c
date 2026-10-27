@@ -263,6 +263,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_status *pdata =
 			(struct sensor_status *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_GET_STATUS type=%d status:%d\n",
 			__func__, pdata->sensor_type, pdata->status);
 		if (pdata->status != 0)
@@ -273,6 +277,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_value *pdata =
 			(struct sensor_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		data->sensor_data[pdata->sensor_type] = *pdata;
 		if (data->raw_data_stream & 1 << pdata->sensor_type)
 			data->data_ready_flag |= 1 << pdata->sensor_type;
@@ -282,6 +290,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_calib_value *pdata =
 			(struct sensor_calib_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_CALIB_DATA_RCVD type=%d, x=%d, y=%d, z=%d\n",
 			__func__, pdata->sensor_type,
 			pdata->x, pdata->y, pdata->z);
@@ -298,6 +310,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_calib_store_result *pdata =
 			(struct sensor_calib_store_result *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_CALIB_STORE_RCVD type=%d,nCalibstoreresult=%d\n",
 			__func__, pdata->sensor_type, pdata->result);
 		data->sensor_calib_result[pdata->sensor_type] = *pdata;
@@ -308,6 +324,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_selftest_show_result *pdata =
 			(struct sensor_selftest_show_result *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_SELFTEST_SHOW_RCVD type=%d, SelftestResult1=%d, SelftestResult2=%d\n",
 			__func__, pdata->sensor_type,
 			pdata->result1, pdata->result2);
@@ -319,6 +339,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_gyro_st_value *pdata =
 			(struct sensor_gyro_st_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_GYRO_SELFTEST_SHOW_RCVD type=%d, SelftestResult1=%d, SelftestResult2=%d\n",
 			__func__, pdata->sensor_type,
 			pdata->result1, pdata->result2);
@@ -330,6 +354,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_gyro_st_value *pdata =
 			(struct sensor_gyro_st_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_GYRO_TEMP_RCVD type = %d, gyro_temp = %d\n",
 			__func__, pdata->sensor_type, pdata->result1);
 		data->gyro_st_result = *pdata;
@@ -341,6 +369,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_accel_lpf_value *pdata =
 			(struct sensor_accel_lpf_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_ACCEL_LPF_ON_OFF type=%d, result=%d, lpf_on_off=%d\n",
 			__func__, pdata->sensor_type,
 			pdata->result, pdata->lpf_on_off);
@@ -352,6 +384,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct dump_register *pdata =
 			(struct dump_register *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type > ADSP_FACTORY_PROX)
+			return -EINVAL;
 
 		pr_info("[FACTORY] %s: DUMP_REGS (%d)\n",
 			__func__, pdata->sensor_type);
@@ -364,6 +400,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_stop_value *pdata =
 			(struct sensor_stop_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_STOP_RAW_DATA type=%d, StopResult=%d\n",
 			__func__, pdata->sensor_type, pdata->result);
 		break;
@@ -372,6 +412,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_mag_factory_value *pdata =
 			(struct sensor_mag_factory_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_MAG_READ_FUSE_ROM type=%d, mag_fuseX=%d, mag_fuseY=%d, mag_fuseZ=%d\n",
 			__func__, pdata->sensor_type,
 			pdata->fuserom_x, pdata->fuserom_y, pdata->fuserom_z);
@@ -383,6 +427,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_mag_factory_value *pdata =
 			(struct sensor_mag_factory_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_MAG_READ_REGISTERS type=%d, reg_0=%d, reg_1=%d, reg_2=%d\n",
 			__func__, pdata->sensor_type, pdata->registers[0],
 			pdata->registers[1], pdata->registers[2]);
@@ -394,6 +442,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_status *pdata =
 			(struct sensor_status *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_DUMPSTATE type=%d status:%d\n",
 			__func__, pdata->sensor_type, pdata->status);
 		data->dump_status = pdata->status;
@@ -404,6 +456,8 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct prox_th_value *pdata =
 			(struct prox_th_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_THD_HI_LO_DATA_RCVD %d:%d\n",
 			__func__, pdata->th_high, pdata->th_low);
 		data->pth = *pdata;
@@ -415,6 +469,8 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct prox_th_value *pdata =
 			(struct prox_th_value *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_HD_THD_HI_LO_DATA_RCVD %d:%d\n",
 			__func__, pdata->hd_th_high, pdata->hd_th_low);
 		data->pth = *pdata;
@@ -427,6 +483,10 @@ static int process_received_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 	{
 		struct sensor_status *pdata =
 			(struct sensor_status *)NLMSG_DATA(nlh);
+		if (nlmsg_len(nlh) < sizeof(*pdata))
+			return -EINVAL;
+		if ((unsigned int)pdata->sensor_type >= ADSP_FACTORY_SENSOR_MAX)
+			return -EINVAL;
 		pr_info("[FACTORY] %s: NETLINK_MESSAGE_HIDDEN_HOLE_READ_DATA type=%d\n",
 			__func__, pdata->sensor_type);
 		hidden_hole_data_read(data);
