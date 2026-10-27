@@ -47,7 +47,7 @@ MODULE_PARM_DESC(bufsiz, "data bytes in biggest supported SPI message");
 /* upper bound for user-sized VDM and image transfers (kzalloc'd per call) */
 #define ETSPI_MAX_XFER_LEN (1024 * 1024)
 
-void etspi_pin_control(struct etspi_data *etsspi, bool pin_set)
+static void etspi_pin_control(struct etspi_data *etsspi, bool pin_set)
 {
 	int status = 0;
 
@@ -88,7 +88,7 @@ static irqreturn_t etspi_fingerprint_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-int etspi_Interrupt_Init(
+static int etspi_Interrupt_Init(
 		struct etspi_data *etspi,
 		int int_ctrl,
 		int detect_period,
@@ -130,7 +130,7 @@ done:
 	return status;
 }
 
-int etspi_Interrupt_Free(struct etspi_data *etspi)
+static int etspi_Interrupt_Free(struct etspi_data *etspi)
 {
 	pr_info("%s\n", __func__);
 
@@ -149,12 +149,12 @@ int etspi_Interrupt_Free(struct etspi_data *etspi)
 	return 0;
 }
 
-void etspi_Interrupt_Abort(struct etspi_data *etspi)
+static void etspi_Interrupt_Abort(struct etspi_data *etspi)
 {
 	wake_up_interruptible(&interrupt_waitq);
 }
 
-unsigned int etspi_fps_interrupt_poll(
+static unsigned int etspi_fps_interrupt_poll(
 		struct file *file,
 		struct poll_table_struct *wait)
 {
@@ -713,7 +713,7 @@ static int etspi_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-int etspi_platformInit(struct etspi_data *etspi)
+static int etspi_platformInit(struct etspi_data *etspi)
 {
 	int status = 0;
 
@@ -780,7 +780,7 @@ etspi_platformInit_failed:
 	return status;
 }
 
-void etspi_platformUninit(struct etspi_data *etspi)
+static void etspi_platformUninit(struct etspi_data *etspi)
 {
 	pr_info("%s\n", __func__);
 

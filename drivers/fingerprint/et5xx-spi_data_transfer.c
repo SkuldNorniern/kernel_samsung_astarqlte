@@ -589,7 +589,7 @@ end:
 #endif
 }
 
-int etspi_nvm_read(struct etspi_data *etspi, struct egis_ioc_transfer *ioc)
+static int etspi_nvm_read(struct etspi_data *etspi, struct egis_ioc_transfer *ioc)
 {
 #ifdef ENABLE_SENSORS_FPRINT_SECURE
 	return 0;
