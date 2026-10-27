@@ -5551,7 +5551,8 @@ static void run_ssr_read_all(void *device_data)
 	get_raw_data(info, (u8 *)raw_data->ssr_data, 1);
 	ts_set_touchmode(TOUCH_POINT_MODE);
 
-	all_cmdbuff_size = info->cap_info.y_node_num * 6;
+	/* u16 "%u," is at most 6 chars ("65535,"), plus NUL */
+	all_cmdbuff_size = info->cap_info.y_node_num * 6 + 1;
 	all_cmdbuff = kzalloc(all_cmdbuff_size, GFP_KERNEL);
 	if (!all_cmdbuff) {
 		ret = -ENOMEM;
