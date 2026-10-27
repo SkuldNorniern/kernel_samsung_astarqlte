@@ -67,3 +67,14 @@ config NFC_NQ
           This enables the NFC driver for NQx based devices.
           This is for i2c connected version. NCI protocol logic
           resides in the usermode and it has no other NFC dependencies.
+
+config NFC_PN547
+	tristate "NXP PN547 NFC controller"
+	depends on I2C && GPIOLIB && OF
+	help
+	  NXP PN547 Near Field Communication controller support.
+	  The chip is exposed as a misc character device (/dev/pn547)
+	  and is driven from userspace through the PN547 ioctl ABI
+	  defined in drivers/nfc/pn547.h. NFC is controlled over I2C.
+
+	  Say Y or M here to build the driver. The module is pn547.
