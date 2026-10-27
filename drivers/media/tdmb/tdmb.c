@@ -1329,10 +1329,7 @@ static int tdmb_remove(struct platform_device *pdev)
 	regulator_put(dt_pdata->tdmb_vreg);
 #endif
 
-	if (!tdmbdrv_data) {
-		devm_kfree(&pdev->dev, tdmbdrv_data);
-		tdmbdrv_data = NULL;
-	}
+	tdmbdrv_data = NULL;
 	return 0;
 }
 
