@@ -313,6 +313,7 @@ sdm660-internal-codec-cdp.dtb \
         sdm660-internal-codec-rcm.dtb \
         sdm660-cdp.dtb \
         sdm660-mtp.dtb \
+        sdm660-astarqlte.dtb \
         sdm660-qrd.dtb \
         sdm660-rcm.dtb \
         sdm660-pm660a-cdp.dtb \

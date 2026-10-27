@@ -1,0 +1,136 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Samsung Galaxy A8 Star (SM-G885S, codename astarqlte, SoC SDM660).
+ * Phase 1: boot essentials, volume/bixby keys, touch power and touch IC.
+ */
+
+/dts-v1/;
+
+#include "sdm660.dtsi"
+#include "sdm660-mtp.dtsi"
+#include "sdm660-external-codec.dtsi"
+
+/ {
+	model = "Samsung A-STARQLTE KOR PROJECT Rev06 (board-id,07)";
+	compatible = "qcom,sdm660-mtp", "qcom,sdm660", "qcom,mtp";
+	qcom,msm-id = <0x13d 0x0>;
+	qcom,board-id = <0x8 0x7>;
+
+	reserved-memory {
+		/* base sdm660.dtsi ramoops (0x9ff00000) replaced by stock layout */
+		/delete-node/ ramoops;
+
+		ramoops@84d00000 {
+			compatible = "ramoops";
+			reg = <0x0 0x84d00000 0x0 0x100000>;
+			record-size = <0x40000>;
+			console-size = <0x40000>;
+			ftrace-size = <0x40000>;
+			pmsg-size = <0x40000>;
+		};
+	};
+};
+
+&tlmm {
+	tsp_int {
+		tsp_int_active: tsp_int_active {
+			mux {
+				pins = "gpio67";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio67";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+
+		tsp_int_suspend: tsp_int_suspend {
+			mux {
+				pins = "gpio67";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio67";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+	};
+};
+
+&soc {
+	tsp_ldo_en {
+		compatible = "regulator-fixed";
+		regulator-name = "tsp_ldo_en";
+		regulator-min-microvolt = <0x1b7740>;
+		regulator-max-microvolt = <0x1b7740>;
+		gpio = <&pm660l_gpios 4 0x0>;
+		enable-active-high;
+		regulator-boot-on;
+	};
+
+	gpio_keys {
+		/delete-property/ pinctrl-1;
+		pinctrl-names = "default";
+		pinctrl-0 = <&key_vol_up_default>;
+
+		/delete-node/ camera_focus;
+		/delete-node/ camera_snapshot;
+
+		key_wink {
+			label = "key_wink";
+			gpios = <&pm660l_gpios 8 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x2bf>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+	};
+};
+
+&i2c_4 {
+	status = "okay";
+
+	touchscreen@20 {
+		status = "okay";
+		compatible = "zinitix,bt532_ts_device";
+		reg = <0x20>;
+		pinctrl-names = "on_state", "off_state";
+		pinctrl-0 = <&tsp_int_active>;
+		pinctrl-1 = <&tsp_int_suspend>;
+		zinitix,irq_gpio = <&tlmm 67 0x0>;
+		zinitix,gpio_ldo_en;
+		zinitix,regulator_avdd = "tsp_ldo_en";
+		zinitix,x_resolution = <0x438>;
+		zinitix,y_resolution = <0x8ac>;
+		zinitix,page_size = <0x80>;
+		zinitix,chip_name = "ZT7548";
+		zinitix,firmware_name = "tsp_zinitix/zt7548_astar.fw";
+		zinitix,spay = "true";
+		zinitix,aod = "true";
+		zinitix,tclm_level = <0x2>;
+		zinitix,afe_base = <0x800a>;
+		zinitix,mis_cal_check = "true";
+		clock-names = "iface_clk", "core_clk";
+		clocks = <&clock_gcc GCC_BLSP1_AHB_CLK>,
+			 <&clock_gcc GCC_BLSP1_QUP4_I2C_APPS_CLK>;
+		zinitix,factory_item_version = <0x4>;
+	};
+};
+
+/*
+ * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
+ * not yet: panel (ss_dsi_panel_S6E3FA7_AMS628RF01_FHD, dsi_panel_pwr_supply_samsung,
+ *          mdss dsi0 hookup, mdss_disp_det/te pinctrl), dfps_data_mem,
+ * not yet: sm5705 (charger, fuel gauge, muic, fled, rgb), pcal6524 expander,
+ * not yet: s2mm005 usb-pd, sec_ts (second touch IC on i2c_4),
+ * not yet: fingerprint (etspi on spi_3), audio (dbmdx, sec_jack, q6audio),
+ * not yet: camera flash, vibrator, tdmb, battery/cable-info, thermistors,
+ * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
+ * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
+ */
