@@ -1083,6 +1083,22 @@ static int sec_bat_set_charge(
 	ktime_t current_time = {0, };
 	struct timespec ts = {0, };
 
+	switch (chg_mode) {
+	case SEC_BATTERY_BUCKOFF:
+		val.intval = SEC_BAT_CHG_MODE_BUCK_OFF;
+		break;
+	case SEC_BATTERY_CHARGING_NONE:
+		val.intval = SEC_BAT_CHG_MODE_CHARGING_OFF;
+		break;
+	case SEC_BATTERY_CHARGING_1ST:
+	case SEC_BATTERY_CHARGING_2ND:
+		val.intval = SEC_BAT_CHG_MODE_CHARGING;
+		break;
+	default:
+		dev_err(battery->dev, "%s: invalid charging mode %d\n", __func__, chg_mode);
+		return -EINVAL;
+	}
+
 	if (chg_mode < SEC_BATTERY_BUCKOFF)
 		dev_info(battery->dev, "invalid chg_mode: %d", chg_mode);
 	if ((battery->status == POWER_SUPPLY_STATUS_CHARGING || battery->status == POWER_SUPPLY_STATUS_FULL) &&
@@ -1135,22 +1151,6 @@ static int sec_bat_set_charge(
 #endif
 	}
 	battery->charging_mode = chg_mode;
-	switch (chg_mode){
-	case SEC_BATTERY_BUCKOFF:
-		val.intval = SEC_BAT_CHG_MODE_BUCK_OFF;
-		break;
-	case SEC_BATTERY_CHARGING_NONE:
-		val.intval = SEC_BAT_CHG_MODE_CHARGING_OFF;
-		break;
-	case SEC_BATTERY_CHARGING_1ST:
-	case SEC_BATTERY_CHARGING_2ND:
-		val.intval = SEC_BAT_CHG_MODE_CHARGING;
-		break;
-	default:
-		panic("invalid charging mode");
-		break;
-	}
-
 	psy_do_property(battery->pdata->charger_name, set,
 		POWER_SUPPLY_PROP_CHARGING_ENABLED, val);
 	psy_do_property(battery->pdata->fuelgauge_name, set,
