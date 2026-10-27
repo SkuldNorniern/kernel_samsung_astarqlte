@@ -249,6 +249,11 @@ int sm5705_irq_init(struct sm5705_dev *sm5705)
     int ret;
 
     ret = sm5705_mask_all_irqs(sm5705);
+    if (ret < 0) {
+     dev_err(sm5705->dev, "%s: mask irqs failed (%d)\n",
+         __func__, ret);
+     return ret;
+    }
 
     if (!sm5705->irq_gpio) {
      dev_warn(sm5705->dev, "No interrupt specified.\n");
