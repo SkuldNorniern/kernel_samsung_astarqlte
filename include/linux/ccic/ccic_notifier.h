@@ -1,16 +1,29 @@
 /*
- * include/linux/ccic/ccic_notifier.h
+ * include/linux/muic/ccic_notifier.h
  *
- * STUB until the S2MM005 CCIC driver is ported. Types match the stock
- * 4.4 header; the register/notify calls are no-ops so MUIC can build and
- * run with CCIC absent (CONFIG_CCIC_NOTIFIER off).
+ * header file supporting CCIC notifier call chain information
+ *
+ * Copyright (C) 2010 Samsung Electronics
+ * Seung-Jin Hahn <sjin.hahn@samsung.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *
  */
+
 #ifndef __CCIC_NOTIFIER_H__
 #define __CCIC_NOTIFIER_H__
-
-#include <linux/types.h>
-#include <linux/notifier.h>
-
 
 /* CCIC notifier call sequence,
  * largest priority number device will be called first. */
@@ -158,25 +171,28 @@ struct ccic_notifier_struct {
 	struct blocking_notifier_head notifier_call_chain;
 };
 
-static inline int ccic_notifier_notify(CC_NOTI_TYPEDEF *n, void *d, int s)
-{
-	return 0;
-}
+#define CCIC_NOTIFIER_BLOCK(name)	\
+	struct notifier_block (name)
 
-static inline int ccic_notifier_register(struct notifier_block *nb,
-		notifier_fn_t notifier, ccic_notifier_device_t listener)
-{
-	return 0;
-}
+extern int ccic_notifier_notify(CC_NOTI_TYPEDEF *, void *, int);
+//extern void ccic_notifier_255K_test(void);
 
-static inline int ccic_notifier_unregister(struct notifier_block *nb)
-{
-	return 0;
-}
+/* ccic notifier register/unregister API
+ * for used any where want to receive ccic attached device attach/detach. */
+extern int ccic_notifier_register(struct notifier_block *nb,
+		notifier_fn_t notifier, ccic_notifier_device_t listener);
+extern int ccic_notifier_unregister(struct notifier_block *nb);
+extern int ccic_notifier_init(void);
 
-static inline int ccic_notifier_init(void)
-{
-	return 0;
-}
+#define CCIC_NOTI_DEST_NUM	(10)
+#define CCIC_NOTI_ID_NUM	(14)
+#define CCIC_NOTI_RID_NUM	(8)
+#define CCIC_NOTI_USB_STATUS_NUM (5)
+#define CCIC_NOTI_PIN_STATUS_NUM	(8)
+
+extern char CCIC_NOTI_DEST_Print[CCIC_NOTI_DEST_NUM][10];
+extern char CCIC_NOTI_ID_Print[CCIC_NOTI_ID_NUM][20];
+extern char CCIC_NOTI_RID_Print[CCIC_NOTI_RID_NUM][15];
+extern char CCIC_NOTI_USB_STATUS_Print[CCIC_NOTI_USB_STATUS_NUM][20];
 
 #endif /* __CCIC_NOTIFIER_H__ */

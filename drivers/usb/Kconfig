@@ -171,6 +171,8 @@ source "drivers/usb/gadget/Kconfig"
 
 source "drivers/usb/notify/Kconfig"
 
+source "drivers/usb/manager/Kconfig"
+
 source "drivers/usb/typec/Kconfig"
 
 source "drivers/usb/roles/Kconfig"

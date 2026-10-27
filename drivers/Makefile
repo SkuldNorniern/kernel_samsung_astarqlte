@@ -123,6 +123,7 @@ obj-y				+= power/
 obj-$(CONFIG_VBUS_NOTIFIER)	+= staging/samsung/sec_notifier/
 obj-$(CONFIG_BATTERY_SAMSUNG)	+= battery_v2/
 obj-$(CONFIG_USE_MUIC)		+= muic/
+obj-y		+= ccic/
 obj-$(CONFIG_HWMON)		+= hwmon/
 obj-$(CONFIG_THERMAL)		+= thermal/
 obj-$(CONFIG_WATCHDOG)		+= watchdog/

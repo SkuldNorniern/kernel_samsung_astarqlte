@@ -95,6 +95,8 @@ source "drivers/muic/Kconfig"
 
 source "drivers/muic/universal/Kconfig"
 
+source "drivers/ccic/Kconfig"
+
 source "drivers/battery_v2/Kconfig"
 
 source "drivers/regulator/Kconfig"
