@@ -1044,6 +1044,27 @@
 	};
 };
 
+/*
+ * Trustonic MobiCore (Kinibi) mailbox, stock r07 "mcd" node.
+ * Used by drivers/gud/MobiCoreDriver (qcom,mcd).
+ */
+&soc {
+	mcd {
+		compatible = "qcom,mcd";
+		qcom,ce-hw-instance = <0>;
+		qcom,ce-device = <0>;
+		interrupts = <0 248 0>;
+		interrupt-names = "mcd_irq";
+		clock-names = "core_clk_src", "core_clk",
+				"iface_clk", "bus_clk";
+		clocks = <&clock_rpmcc QSEECOM_CE1_CLK>,
+			<&clock_rpmcc QSEECOM_CE1_CLK>,
+			<&clock_rpmcc QSEECOM_CE1_CLK>,
+			<&clock_rpmcc QSEECOM_CE1_CLK>;
+		qcom,ce-opp-freq = <171430000>;
+	};
+};
+
 &i2c_7 {
 	/* stock tfa98xx node: i2c@c1b7000 (BLSP2 QUP3), pins gpio26/27 */
 	status = "okay";
