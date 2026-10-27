@@ -5,6 +5,7 @@
 
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
+#include <linux/i2c.h>
 #include <linux/module.h>
 #include <sound/pcm_params.h>
 #include <linux/delay.h>
@@ -2331,6 +2332,39 @@ static struct snd_soc_dai_link_component tfa98xx_codecs[] = {
 
 };
 
+/*
+ * Stock takes the speaker amp from the "speaker-amps" phandle. The tfa98xx
+ * driver names its component and dai from the i2c adapter nr and address,
+ * so resolve the same names here. Without the property the i2c-6 names
+ * above are kept.
+ */
+static int msm_tfa98xx_get_codec_name(struct device *dev)
+{
+	struct device_node *np;
+	struct i2c_client *client;
+
+	np = of_parse_phandle(dev->of_node, "speaker-amps", 0);
+	if (!np)
+		return 0;
+
+	client = of_find_i2c_device_by_node(np);
+	of_node_put(np);
+	if (!client)
+		return -EPROBE_DEFER;
+
+	tfa98xx_codecs[0].name = devm_kasprintf(dev, GFP_KERNEL,
+				"tfa98xx.%s", dev_name(&client->dev));
+	tfa98xx_codecs[0].dai_name = devm_kasprintf(dev, GFP_KERNEL,
+				"tfa98xx-aif-%x-%x", client->adapter->nr,
+				client->addr);
+	put_device(&client->dev);
+
+	if (!tfa98xx_codecs[0].name || !tfa98xx_codecs[0].dai_name)
+		return -ENOMEM;
+
+	return 0;
+}
+
 static struct snd_soc_dai_link msm_int_be_dai[] = {
 	/* Backend I2S DAI Links */
 	{
@@ -2735,6 +2769,10 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.platform_name = "msm-pcm-routing",
 		.codecs = tfa98xx_codecs,
 		.num_codecs = 1,
+#if defined(CONFIG_SND_SOC_TFA9874)
+		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+			SND_SOC_DAIFMT_CBS_CFS,
+#endif
 		.no_pcm = 1,
 		.dpcm_playback = 1,
 		.id = MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
@@ -3276,7 +3314,13 @@ int msm_int_cdc_init(struct platform_device *pdev,
 		     struct snd_soc_card **card,
 		     struct wcd_mbhc_config *mbhc_cfg)
 {
+	int ret;
+
 	mbhc_cfg_ptr = mbhc_cfg;
+
+	ret = msm_tfa98xx_get_codec_name(&pdev->dev);
+	if (ret)
+		return ret;
 
 	*card = msm_int_populate_sndcard_dailinks(&pdev->dev);
 	msm_internal_init(pdev, pdata, *card);
