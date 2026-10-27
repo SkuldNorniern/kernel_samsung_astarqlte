@@ -1,0 +1,651 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ * Samsung Galaxy A8 Star (SM-G885S, codename astarqlte) - mainline port (WIP)
+ *
+ * Source of truth for hardware details: Samsung 4.19 port tree
+ * (arch/arm64/boot/dts/vendor/qcom/sdm660-astarqlte.dts and the
+ * security-4.4.302 branch sdm660-sec-astarqlte-kor-r07.dts). Reserved-memory
+ * layout is copied from the stock DT; do not drop regions (missing
+ * reservations crashed 4.19).
+ *
+ * Status: DTB builds. Everything not yet expressible upstream is marked TODO.
+ */
+
+/dts-v1/;
+
+#include "sdm660.dtsi"
+#include "pm660.dtsi"
+#include "pm660l.dtsi"
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/*
+ * sdm630.dtsi ships a generic mainline-style reserved-memory layout that overlaps
+ * the stock Samsung regions below. Replace it wholesale with the stock layout.
+ */
+/ {
+	model = "Samsung Galaxy A8 Star (SM-G885S)";
+	compatible = "samsung,astarqlte", "qcom,sdm660";
+	chassis-type = "handset";
+
+	/* stock: qcom,msm-id = <0x13d 0x0>; qcom,board-id = <0x8 0x7>; */
+	qcom,msm-id = <317 0>;
+	qcom,board-id = <8 7>;
+
+	/delete-node/ reserved-memory;
+
+	aliases {
+		serial0 = &blsp1_uart2;	/* debug UART (lavender uses the same) */
+		mmc0 = &sdhc_1;		/* eMMC */
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	/*
+	 * Bootloader framebuffer (cont-splash). Stock region is 0x9d400000 +
+	 * 0x23ff000. The simple framebuffer is the first display until a real
+	 * DSI panel driver is up.
+	 * TODO: verify pixel format against the bootloader (stock is 8888).
+	 */
+	framebuffer@9d400000 {
+		compatible = "simple-framebuffer";
+		reg = <0x0 0x9d400000 0x0 0x23ff000>;
+		width = <1080>;
+		height = <2220>;
+		stride = <4320>;
+		format = "a8r8g8b8";
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* stock: wlan_msa_guard / wlan_msa_mem (WCN3990 MSA) */
+		wlan_msa_guard: wlan-msa-guard@85600000 {
+			reg = <0x0 0x85600000 0x0 0x100000>;
+			no-map;
+		};
+
+		wlan_msa_mem: wlan-msa@85700000 {
+			reg = <0x0 0x85700000 0x0 0x100000>;
+			no-map;
+		};
+
+		/* stock: removed_regions@85800000 */
+		removed_regions: removed-regions@85800000 {
+			reg = <0x0 0x85800000 0x0 0x3d00000>;
+			no-map;
+		};
+
+		/* stock: modem_fw_region (MPSS) */
+		mpss_mem: mpss_region: mpss@8ac00000 {
+			reg = <0x0 0x8ac00000 0x0 0x7e00000>;
+			no-map;
+		};
+
+		/* stock: venus_fw_region */
+		venus_mem: venus_region: venus@95900000 {
+			reg = <0x0 0x95900000 0x0 0x500000>;
+			no-map;
+		};
+
+		/* stock: adsp_fw_region */
+		adsp_mem: adsp_region: adsp@92a00000 {
+			reg = <0x0 0x92a00000 0x0 0x2700000>;
+			no-map;
+		};
+
+		/* stock: pil_mba_region */
+		mba_mem: mba_region: mba@95100000 {
+			reg = <0x0 0x95100000 0x0 0x200000>;
+			no-map;
+		};
+
+		/* stock: cdsp_fw_region (sdm660.dtsi also defines cdsp_region at 0x94a00000; overlap to check) */
+		cdsp_fw_mem: cdsp-fw@95300000 {
+			reg = <0x0 0x95300000 0x0 0x600000>;
+			no-map;
+		};
+
+		/* stock: modem_shared_mem_region */
+		modem_shared_mem: modem-shared@96400000 {
+			reg = <0x0 0x96400000 0x0 0x6000000>;
+			no-map;
+		};
+
+		/* base sdm630.dtsi references smem_region (0x86000000) and
+		 * zap_shader_region (0xfed00000); kept at the base addresses. TODO: verify on device */
+		smem_region: smem-mem@86000000 {
+			reg = <0x0 0x86000000 0x0 0x200000>;
+			no-map;
+		};
+
+		zap_shader_region: gpu@fed00000 {
+			reg = <0x0 0xfed00000 0x0 0xa00000>;
+			no-map;
+		};
+
+		/* stock: adsp_region (shared-dma-pool) */
+		adsp_shared: adsp-region {
+			compatible = "shared-dma-pool";
+			alloc-ranges = <0x0 0x0 0x0 0xffffffff>;
+			reusable;
+			alignment = <0x0 0x400000>;
+			size = <0x0 0x800000>;
+		};
+
+		/* stock: qseecom_region */
+		qseecom_region: qseecom-region {
+			compatible = "shared-dma-pool";
+			alloc-ranges = <0x0 0x0 0x0 0xffffffff>;
+			reusable;
+			alignment = <0x0 0x400000>;
+			size = <0x0 0x1c00000>;
+		};
+
+		/* stock: secure_region */
+		secure_region: secure-region {
+			compatible = "shared-dma-pool";
+			alloc-ranges = <0x0 0x0 0x0 0xffffffff>;
+			reusable;
+			alignment = <0x0 0x200000>;
+			size = <0x0 0x8c00000>;
+		};
+
+		/* stock: linux,cma (default CMA) */
+		linux,cma {
+			compatible = "shared-dma-pool";
+			alloc-ranges = <0x0 0x0 0x0 0xffffffff>;
+			reusable;
+			alignment = <0x0 0x400000>;
+			size = <0x0 0x2c00000>;
+			linux,cma-default;
+		};
+
+		/* stock: ss_plog, ramoops, sec_debug (Samsung debug, kept for parity) */
+		ss_plog: ss-plog@84b00000 {
+			compatible = "ss_plog";
+			reg = <0x0 0x84b00000 0x0 0x200000>;
+			no-map;
+		};
+
+		ramoops: ramoops@84d00000 {
+			compatible = "ramoops";
+			reg = <0x0 0x84d00000 0x0 0x100000>;
+			record-size = <0x40000>;
+			console-size = <0x40000>;
+			ftrace-size = <0x40000>;
+			pmsg-size = <0x40000>;
+		};
+
+		sec_debug: sec-debug@84e00000 {
+			reg = <0x0 0x84e00000 0x0 0x800000>;
+			no-map;
+		};
+
+		/* stock: tima_region, kaslr_region, dfps_data_mem */
+		tima_mem: tima@9f800000 {
+			reg = <0x0 0x9f800000 0x0 0x200000>;
+			no-map;
+		};
+
+		kaslr_mem: kaslr@9fa00000 {
+			reg = <0x0 0x9fa00000 0x0 0x100000>;
+			no-map;
+		};
+
+		dfps_data_mem: dfps-data@9f7ff000 {
+			reg = <0x0 0x9f7ff000 0x0 0x1000>;
+			no-map;
+		};
+	};
+
+	vph_pwr: vph-pwr-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vph_pwr";
+		regulator-min-microvolt = <3700000>;
+		regulator-max-microvolt = <3700000>;
+		regulator-always-on;
+		regulator-boot-on;
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+
+		key-volume-up {
+			label = "volume_up";
+			linux,code = <KEY_VOLUMEUP>;
+			gpios = <&pm660l_gpios 7 GPIO_ACTIVE_LOW>;
+			debounce-interval = <15>;
+			wakeup-source;
+		};
+
+		/* TODO: stock key_wink (linux,code 0x2bf, pm660l gpio 8) - confirm it is a real key */
+	};
+
+	/* TODO: sm5705 PMIC (charger/fuelgauge/MUIC/flash/RGB LED): no mainline driver */
+	/* TODO: s2mm005 USB-C PD (CCIC): no mainline driver */
+	/* TODO: thermistors (sec-ap/pa/wf): Samsung-specific ADC tables */
+	/* TODO: samsung,usb-notifier: role switch via CCIC once S2MM005 exists */
+};
+
+/* ---- PMIC regulators ----
+ * Copied from sdm660-xiaomi-lavender-common.dtsi (same pm660/pm660l rails).
+ * TODO: verify each vreg voltage/load against the stock A8 Star DT. */
+&rpm_requests {
+	regulators-0 {
+		compatible = "qcom,rpm-pm660l-regulators";
+
+		vdd_s1-supply = <&vph_pwr>;
+		vdd_s2-supply = <&vph_pwr>;
+		vdd_s3_s4-supply = <&vph_pwr>;
+		vdd_s5-supply = <&vph_pwr>;
+		vdd_s6-supply = <&vph_pwr>;
+
+		vdd_l1_l9_l10-supply = <&vreg_s2b_1p05>;
+		vdd_l2-supply = <&vreg_bob>;
+		vdd_l3_l5_l7_l8-supply = <&vreg_bob>;
+		vdd_l4_l6-supply = <&vreg_bob>;
+		vdd_bob-supply = <&vph_pwr>;
+
+		vreg_bob: bob {
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3600000>;
+			regulator-enable-ramp-delay = <500>;
+		};
+
+		vreg_s1b_1p125: s1 {
+			regulator-min-microvolt = <1125000>;
+			regulator-max-microvolt = <1125000>;
+			regulator-enable-ramp-delay = <200>;
+		};
+
+		vreg_s2b_1p05: s2 {
+			regulator-min-microvolt = <1050000>;
+			regulator-max-microvolt = <1050000>;
+			regulator-enable-ramp-delay = <200>;
+		};
+
+		/* LDOs */
+		vreg_l1b_0p925: l1 {
+			regulator-min-microvolt = <800000>;
+			regulator-max-microvolt = <925000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+		};
+
+		/* SDHCI 3.3V signal doesn't seem to be supported. */
+		vreg_l2b_2p95: l2 {
+			regulator-min-microvolt = <1648000>;
+			regulator-max-microvolt = <3100000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+		};
+
+		vreg_l3b_3p3: l3 {
+			regulator-min-microvolt = <1700000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+			regulator-always-on;
+		};
+
+		vreg_l4b_2p95: l4 {
+			regulator-min-microvolt = <2944000>;
+			regulator-max-microvolt = <2952000>;
+			regulator-enable-ramp-delay = <250>;
+
+			regulator-min-microamp = <200>;
+			regulator-max-microamp = <600000>;
+			regulator-system-load = <570000>;
+			regulator-allow-set-load;
+		};
+
+		/*
+		 * Downstream specifies a range of 1721-3600mV,
+		 * but the only assigned consumers are SDHCI2 VMMC
+		 * and Coresight QPDI that both request pinned 2.95V.
+		 * Tighten the range to 1.8-3.328 (closest to 3.3) to
+		 * make the mmc driver happy.
+		 */
+		vreg_l5b_2p95: l5 {
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3328000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+		};
+
+		vreg_l7b_3p125: l7 {
+			regulator-min-microvolt = <2700000>;
+			regulator-max-microvolt = <3125000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l8b_3p3: l8 {
+			regulator-min-microvolt = <3200000>;
+			regulator-max-microvolt = <3400000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+	};
+
+	regulators-1 {
+		compatible = "qcom,rpm-pm660-regulators";
+
+		vdd_s1-supply = <&vph_pwr>;
+		vdd_s2-supply = <&vph_pwr>;
+		vdd_s3-supply = <&vph_pwr>;
+		vdd_s4-supply = <&vph_pwr>;
+		vdd_s5-supply = <&vph_pwr>;
+		vdd_s6-supply = <&vph_pwr>;
+
+		vdd_l1_l6_l7-supply = <&vreg_s5a_1p35>;
+		vdd_l2_l3-supply = <&vreg_s2b_1p05>;
+		vdd_l5-supply = <&vreg_s2b_1p05>;
+		vdd_l8_l9_l10_l11_l12_l13_l14-supply = <&vreg_s4a_2p04>;
+		vdd_l15_l16_l17_l18_l19-supply = <&vreg_bob>;
+
+		/*
+		 * S1A (FTAPC0), S2A (FTAPC1), S3A (HFAPC1) are managed
+		 * by the Core Power Reduction hardened (CPRh) and the
+		 * Operating State Manager (OSM) HW automatically.
+		 */
+
+		vreg_s4a_2p04: s4 {
+			regulator-min-microvolt = <1805000>;
+			regulator-max-microvolt = <2040000>;
+			regulator-enable-ramp-delay = <200>;
+			regulator-always-on;
+		};
+
+		vreg_s5a_1p35: s5 {
+			regulator-min-microvolt = <1224000>;
+			regulator-max-microvolt = <1350000>;
+			regulator-enable-ramp-delay = <200>;
+		};
+
+		vreg_s6a_0p87: s6 {
+			regulator-min-microvolt = <504000>;
+			regulator-max-microvolt = <992000>;
+			regulator-enable-ramp-delay = <150>;
+		};
+
+		/* LDOs */
+		vreg_l1a_1p225: l1 {
+			regulator-min-microvolt = <1150000>;
+			regulator-max-microvolt = <1250000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+		};
+
+		vreg_l2a_1p0: l2 {
+			regulator-min-microvolt = <950000>;
+			regulator-max-microvolt = <1010000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l3a_1p0: l3 {
+			regulator-min-microvolt = <950000>;
+			regulator-max-microvolt = <1010000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l5a_0p848: l5 {
+			regulator-min-microvolt = <525000>;
+			regulator-max-microvolt = <950000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l6a_1p3: l6 {
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1370000>;
+			regulator-allow-set-load;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l7a_1p2: l7 {
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l8a_1p8: l8 {
+			regulator-min-microvolt = <1750000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-system-load = <325000>;
+			regulator-allow-set-load;
+		};
+
+		vreg_l9a_1p8: l9 {
+			regulator-min-microvolt = <1750000>;
+			regulator-max-microvolt = <1900000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+		};
+
+		vreg_l10a_1p8: l10 {
+			regulator-min-microvolt = <1780000>;
+			regulator-max-microvolt = <1950000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+			regulator-system-load = <14000>;
+		};
+
+		vreg_l11a_1p8: l11 {
+			regulator-min-microvolt = <1780000>;
+			regulator-max-microvolt = <1950000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l12a_1p8: l12 {
+			regulator-min-microvolt = <1780000>;
+			regulator-max-microvolt = <1950000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		/* This gives power to the LPDDR4: never turn it off! */
+		vreg_l13a_1p8: l13 {
+			regulator-min-microvolt = <1780000>;
+			regulator-max-microvolt = <1950000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-boot-on;
+			regulator-always-on;
+		};
+
+		vreg_l14a_1p8: l14 {
+			regulator-min-microvolt = <1710000>;
+			regulator-max-microvolt = <1900000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l15a_1p8: l15 {
+			regulator-min-microvolt = <1650000>;
+			regulator-max-microvolt = <2950000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l16a_2p7: l16 {
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-always-on;
+		};
+
+		vreg_l17a_1p8: l17 {
+			regulator-min-microvolt = <1648000>;
+			regulator-max-microvolt = <2952000>;
+			regulator-enable-ramp-delay = <250>;
+		};
+
+		vreg_l19a_3p3: l19 {
+			regulator-min-microvolt = <3312000>;
+			regulator-max-microvolt = <3400000>;
+			regulator-enable-ramp-delay = <250>;
+			regulator-allow-set-load;
+		};
+	};
+};
+
+&blsp1_uart2 {
+	status = "okay";
+};
+
+/* ---- display ----
+ * Stock: DSI command-mode S6E3FA7 panel, 1080x2220.
+ * TODO: mainline panel-samsung-s6e3fa7 is VIDEO-burst (samsung,s6e3fa7-ams559nk06),
+ * a command-mode variant must be ported from the stock driver. Panel node not added yet. */
+&mdss {
+	status = "okay";
+};
+
+&mdss_dsi0 {
+	status = "okay";
+};
+
+&mdss_dsi0_phy {
+	status = "okay";
+};
+
+&adreno_gpu {
+	status = "okay";
+};
+
+/* TODO: a512 zap shader firmware for astarqlte */
+&adreno_gpu_zap {
+	firmware-name = "qcom/sdm660/a512_zap.mbn";
+};
+
+&venus {
+	status = "okay";
+};
+
+/* ---- storage: eMMC ---- */
+&sdhc_1 {
+	status = "okay";
+	bus-width = <8>;
+	non-removable;
+	supports-cqe;
+	mmc-hs200-1_8v;
+	mmc-hs400-1_8v;
+	mmc-hs400-enhanced-strobe;
+	vmmc-supply = <&vreg_l4b_2p95>;
+	vqmmc-supply = <&vreg_l8a_1p8>;
+};
+
+/* TODO: sdhc_2 (microSD) not enabled, confirm slot on device */
+
+/* ---- USB: peripheral only (no role switch until S2MM005/SM5705 driver exists) ---- */
+&usb3 {
+	status = "okay";
+};
+
+&usb3_dwc3 {
+	dr_mode = "peripheral";
+	maximum-speed = "high-speed";
+	phys = <&qusb2phy0>;
+	phy-names = "usb2-phy";
+};
+
+&qusb2phy0 {
+	status = "okay";
+};
+
+/* ---- modem (MPSS) remoteproc ---- */
+&remoteproc_mss {
+	status = "okay";
+	memory-region = <&mba_mem>, <&mpss_mem>;
+	/* TODO: firmware-name for astarqlte, confirm MSS_SDM660 path in qcom_q6v5_mss.c */
+};
+
+/* TODO: adsp / cdsp remoteprocs and WCD/slimbus audio (lpass not wired in sdm630 base) */
+
+/* ---- I2C: touchscreen (stock i2c@c178000 = blsp_i2c4, zinitix ZT7548) ---- */
+&blsp_i2c4 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+	touchscreen@20 {
+		compatible = "zinitix,bt532";
+		reg = <0x20>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <67 IRQ_TYPE_LEVEL_LOW>;
+		/* TODO: stock is ZT7548, firmware tsp_zinitix/zt7548_astar.fw,
+		 * resolution 1080x2220, spay/aod, tclm. Stock also has sec,sec_ts at 0x48
+		 * (Samsung-only, no mainline driver): board revision selects which chip. */
+	};
+};
+
+/* ---- I2C: NFC (stock i2c@c1b6000 = blsp_i2c6, pn547 at 0x2b) ---- */
+&blsp_i2c6 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+	nfc@2b {
+		compatible = "nxp,nxp-nci-i2c";
+		reg = <0x2b>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <40 IRQ_TYPE_EDGE_RISING>;
+		enable-gpios = <&pcal6524 12 GPIO_ACTIVE_HIGH>;
+		firmware-gpios = <&tlmm 80 GPIO_ACTIVE_HIGH>;
+		/* TODO: stock pn547 uses pcal6524 pin 7 (pvdd), pin 11 (pwr_req), BBCLK3 clk_req */
+	};
+};
+
+/* TODO: TFA9872 amp (stock i2c@c1b7000 = blsp_i2c7, addr 0x34): mainline tfa989x only
+ * supports tfa9890/9895/9897, so the amp needs a driver port or new compatible. */
+
+/* ---- I2C-GPIO bus carrying the PCAL6524 expander (stock i2c@23) ---- */
+/ {
+	i2c-gpio-expander {
+		compatible = "i2c-gpio";
+		sda-gpios = <&tlmm 52 GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&tlmm 51 GPIO_ACTIVE_HIGH>;
+		i2c-gpio,delay-us = <2>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		pcal6524: gpio@22 {
+			compatible = "nxp,pcal6524";
+			reg = <0x22>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			reset-gpios = <&tlmm 33 GPIO_ACTIVE_LOW>;
+			/* TODO: vdd-supply (stock uses the vdd_io rail), stock pcal6524 config/data_out tables */
+		};
+	};
+};
+
+/* ---- WCN3990 Wi-Fi (node exists in sdm630.dtsi as wifi@18800000) ----
+ * Supplies copied from lavender. TODO: confirm rails against stock A8 Star DT. */
+&wifi {
+	vdd-0.8-cx-mx-supply = <&vreg_l5a_0p848>;
+	vdd-1.8-xo-supply = <&vreg_l9a_1p8>;
+	vdd-1.3-rfa-supply = <&vreg_l6a_1p3>;
+	vdd-3.3-ch0-supply = <&vreg_l19a_3p3>;
+	status = "okay";
+};
+
+/* ---- CDSP reservation conflict ----
+ * sdm660.dtsi reserves cdsp_region at 0x94a00000 (0x600000), which lies inside the
+ * stock adsp_fw_region (0x92a00000 + 0x2700000). Drop the upstream one and point the
+ * CDSP at the stock cdsp_fw_region (0x95300000). The qcom,sdm660-cdsp-pas compatible
+ * has no PAS driver match in qcom_q6v5_pas.c, so this node stays disabled. */
+&cdsp_pil {
+	memory-region = <&cdsp_fw_mem>;
+	status = "disabled";
+};
+
+/* ---- not yet possible on mainline (see Docs/14-mainline.md) ----
+ * TODO: SM5705 fuelgauge/charger/MUIC/fled on i2c-gpio (0x71 fuelgauge): no mainline driver
+ * TODO: ET510 / ET5xx fingerprint (spi, etspi,et5xx): no mainline driver
+ * TODO: DBMDX voice codec (spi, dspg,dbmd4-spi): no mainline driver
+ * TODO: WCN3990 Bluetooth (btqca supports WCN3990), no BT node in base, UART is blsp2_uart1
+ * TODO: sensors via SSC (msm-ssc-sensors): no mainline SSC DT
+ * TODO: camera (msm-cam): camss sdm660 binding exists, sensors and CSI wiring not written
+ * TODO: vibrator (stock motor-en via tlmm gpio), haptics on pm660_haptics not enabled
+ */
