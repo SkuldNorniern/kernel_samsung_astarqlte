@@ -35,6 +35,9 @@
 #if !IS_ENABLED(CONFIG_MUIC_UNIVERSAL_SM5705_AFC)
 static inline int muic_torch_prepare(int on) { return 1; }
 static inline void muic_check_afc_state(int on) { }
+#else
+int muic_torch_prepare(int state);
+int muic_check_afc_state(int state);
 #endif
 
 /* Charger event push is a no-op when the SM5705 charger is not built. */
