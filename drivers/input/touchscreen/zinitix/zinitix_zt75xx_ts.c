@@ -9511,6 +9511,7 @@ err_input_register_device:
 err_fw_update:
 #if ESD_TIMER_INTERVAL
 	del_timer(&(info->esd_timeout_tmr));
+	destroy_workqueue(esd_tmr_workqueue);
 err_esd_sequence:
 #endif
 err_power_sequence:
