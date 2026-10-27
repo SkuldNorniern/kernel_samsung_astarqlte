@@ -538,6 +538,11 @@ static int __init factory_adsp_init(void)
 		return -ENOMEM;
 	data->adsp_skt = netlink_kernel_create(&init_net,
 		NETLINK_ADSP_FAC, &netlink_cfg);
+	if (!data->adsp_skt) {
+		kfree(data);
+		data = NULL;
+		return -ENOMEM;
+	}
 
 	data->data_ready_flag = 0;
 	data->calib_ready_flag = 0;
