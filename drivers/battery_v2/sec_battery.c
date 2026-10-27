@@ -4060,8 +4060,10 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 				       battery->usb_temp_adc);
 		} else {
+			/* no usb temp table, so report the raw adc code only */
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
-				       0);
+				       sec_bat_get_adc_value(battery,
+						SEC_BAT_ADC_CHANNEL_USB_TEMP));
 		}
 		break;		
 	case BATT_CHG_TEMP:
