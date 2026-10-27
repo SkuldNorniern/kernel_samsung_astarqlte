@@ -1159,7 +1159,6 @@ static int etspi_probe(struct spi_device *spi)
 
 	spin_lock_init(&etspi->spi_lock);
 	mutex_init(&etspi->buf_lock);
-	mutex_init(&device_list_lock);
 
 	INIT_LIST_HEAD(&etspi->device_entry);
 
