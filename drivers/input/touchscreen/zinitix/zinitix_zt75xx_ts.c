@@ -9497,6 +9497,9 @@ static int bt532_ts_probe(struct i2c_client *client,
 err_kthread_create_failed:
 	sec_cmd_exit(&info->sec, SEC_CLASS_DEVT_TSP);
 	kfree(info->raw_data);
+#ifdef USE_MISC_DEVICE
+	misc_deregister(&touch_misc_device);
+#endif
 #endif
 #ifdef USE_MISC_DEVICE
 err_misc_register:
