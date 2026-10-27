@@ -785,11 +785,13 @@ void etspi_platformUninit(struct etspi_data *etspi)
 	pr_info("%s\n", __func__);
 
 	if (etspi != NULL) {
-		disable_irq_wake(gpio_irq);
-		disable_irq(gpio_irq);
+		if (etspi->drdy_irq_flag == DRDY_IRQ_ENABLE) {
+			disable_irq_wake(gpio_irq);
+			disable_irq(gpio_irq);
+			free_irq(gpio_irq, etspi);
+			etspi->drdy_irq_flag = DRDY_IRQ_DISABLE;
+		}
 		etspi_pin_control(etspi, false);
-		free_irq(gpio_irq, etspi);
-		etspi->drdy_irq_flag = DRDY_IRQ_DISABLE;
 		if (etspi->ldo_pin)
 			gpio_free(etspi->ldo_pin);
 		gpio_free(etspi->sleepPin);
