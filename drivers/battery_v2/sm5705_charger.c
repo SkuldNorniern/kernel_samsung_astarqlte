@@ -1692,6 +1692,7 @@ static int sm5705_charger_probe(struct platform_device *pdev)
 	charger->pdata = _get_sm5705_charger_platform_data(pdev, charger);
 	if (charger->pdata == NULL) {
 		pr_err("fail to get charger platform data\n");
+		kfree(charger);
 		return -ENOENT;
 	}
 
