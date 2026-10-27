@@ -2986,6 +2986,12 @@ static int tfa98xx_parse_dt(struct device *dev, struct tfa98xx *tfa98xx,
 	if (tfa98xx->irq_gpio < 0)
 		dev_dbg(dev, "No IRQ GPIO provided.\n");
 
+	if (of_property_read_string(np, "nxp,firmware-name",
+				    (const char **)&fw_name) < 0)
+		dev_dbg(dev, "firmware-name is %s (default)\n", fw_name);
+	else
+		dev_dbg(dev, "firmware-name is %s\n", fw_name);
+
 	return 0;
 }
 
