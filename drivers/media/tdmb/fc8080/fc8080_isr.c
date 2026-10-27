@@ -32,8 +32,11 @@
 
 #define FC8080_OVERRUN_CLEAR
 
-static u8 fic_buffer[512+4] __cacheline_aligned;
-static u8 msc_buffer[8192+4] __cacheline_aligned;
+#define FC8080_FIC_MAX	512
+#define FC8080_MSC_MAX	8192
+
+static u8 fic_buffer[FC8080_FIC_MAX+4] __cacheline_aligned;
+static u8 msc_buffer[FC8080_MSC_MAX+4] __cacheline_aligned;
 
 s32 (*fic_callback)(u32 userdata, u8 *data, s32 length) = NULL;
 s32 (*msc_callback)(u32 userdata, u8 subch_id, u8 *data, s32 length) = NULL;
@@ -49,6 +52,8 @@ static void fc8080_data(HANDLE handle, u16 status)
 	if (status & 0x0100) {
 		bbm_word_read(handle, BBM_BUF_FIC_THR, &size);
 		size++;
+		if (size > FC8080_FIC_MAX)
+			size = FC8080_FIC_MAX;
 
 		bbm_data(handle, BBM_RD_FIC, &fic_buffer[0], size);
 #ifdef CONFIG_TDMB_SPI
@@ -67,6 +72,8 @@ static void fc8080_data(HANDLE handle, u16 status)
 			continue;
 		bbm_word_read(handle, BBM_BUF_CH0_THR + i * 2, &size);
 		size++;
+		if (size > FC8080_MSC_MAX)
+			size = FC8080_MSC_MAX;
 		bbm_read(handle, BBM_BUF_CH0_SUBID + i, &subch_id);
 		subch_id &= 0x3f;
 		bbm_data(handle, (BBM_RD_BUF0 + i), &msc_buffer[0], size);
