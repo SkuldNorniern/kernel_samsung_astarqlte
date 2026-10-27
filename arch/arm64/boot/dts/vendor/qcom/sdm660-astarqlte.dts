@@ -1096,7 +1096,7 @@
  * not yet: sm5705 usbldo,
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
- * not yet: camera flash, tdmb, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
+ * not yet: camera flash, usb-temp adc channel (gpio5 has no 4.19 ADC5 entry),
  * not yet: usb-notifier, i2c-gpio buses 21/25/27, ss_plog, sec_debug/tima regions,
  * not yet: /chosen (stdout-path, bootargs), bt_wcn3990, input_booster.
  */
@@ -1129,4 +1129,64 @@
 
 &pmic_analog_codec {
 	status = "okay";
+};
+
+/*
+ * T-DMB tuner (FCI FC8080) on spi_1 (BLSP1 QUP1), as in stock r07 where it
+ * sat on spi@c175000. Enable is pcal6524 pin 17, LNA enable is pcal6524 pin
+ * 20 (stock phandle 0x1a2), IRQ is tlmm gpio75. The 24 MHz tuner crystal
+ * is passed as tdmb_xtal_freq.
+ */
+&tlmm {
+	tdmb_irq {
+		tdmb_irq_on: tdmb_irq_on {
+			mux {
+				pins = "gpio75";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio75";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+
+		tdmb_irq_off: tdmb_irq_off {
+			mux {
+				pins = "gpio75";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio75";
+				drive-strength = <2>;
+				bias-pull-down;
+			};
+		};
+	};
+};
+
+&spi_1 {
+	status = "okay";
+
+	tdmb-spi@0 {
+		compatible = "tdmb_spi_comp";
+		reg = <0x0>;
+		spi-max-frequency = <19200000>;
+	};
+};
+
+/ {
+	tdmb_data {
+		compatible = "samsung,tdmb";
+		pinctrl-names = "tdmb_on", "tdmb_off";
+		pinctrl-0 = <&tdmb_irq_on>;
+		pinctrl-1 = <&tdmb_irq_off>;
+		tdmb_pwr_en = <&pcal6524 17 0x0>;
+		tdmb_irq = <&tlmm 75 0x0>;
+		tdmb_lna_en = <&pcal6524 20 0x0>;
+		tdmb_use_irq;
+		tdmb_xtal_freq = <24000>;
+	};
 };
