@@ -525,7 +525,7 @@
 		};
 	};
 
-	/* MUIC interrupt line (gpio50). Ported as pinctrl only, muic node is not ported yet. */
+	/* MUIC interrupt line (gpio50), used by muic-sm5705@25 under i2c-gpio-26. */
 	sm5705_intr_pins {
 		sm5705_intr_default: default {
 			mux {
@@ -699,6 +699,21 @@
 				flash-en-gpio = <&tlmm 60 0>;
 				torch-en-gpio = <&tlmm 41 0>;
 			};
+		};
+
+		muic-sm5705@25 {
+			status = "okay";
+			compatible = "muic-universal";
+			reg = <0x25>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <50 0>;
+			muic-universal,irq-gpio = <&tlmm 50 0>;
+			sm5705,wakeup;
+			muic-universal,chip_name = "sm,sm5705";
+			muic-universal,afc-support = <1>;
+			pinctrl-names = "muic_interrupt_pins_default";
+			pinctrl-0 = <&sm5705_intr_default>;
+			muic,sm5705_switch_gpio = <&pcal6524 13 0>;
 		};
 	};
 };
@@ -990,7 +1005,7 @@
 
 /*
  * Stock r07 nodes not yet ported (no driver or DT binding in this tree yet):
- * not yet: sm5705 muic (muic-sm5705@25), sm5705 usbldo,
+ * not yet: sm5705 usbldo,
  * not yet: mdss_disp_det pinctrl (gpio 45/49), dfps_data_mem,
  * not yet: s2mm005 usb-pd,
  * not yet: q6audio-adaptation (SEC_SND_ADAPTATION),
