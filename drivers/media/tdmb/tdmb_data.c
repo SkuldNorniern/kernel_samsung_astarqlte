@@ -244,10 +244,17 @@ static int __add_ts_data(unsigned char *data, unsigned long data_size)
 		}
 	} else {
 		if (ts_buff_pos > 0) {
+			/* need the sync byte and the rest of the packet in this chunk */
+			if (data_size <= TS_PACKET_SIZE - ts_buff_pos) {
+				DPRINTK("! short ts chunk(%lu)\n", data_size);
+				memset(ts_buff, 0, ts_buff_size);
+				ts_buff_pos = 0;
+				first_packet = 1;
+				return -EPERM;
+			}
 			if (data[TS_PACKET_SIZE - ts_buff_pos] != 0x47) {
-				DPRINTK("! error 0x%x,0x%x !\n",
-					data[TS_PACKET_SIZE - ts_buff_pos],
-					data[TS_PACKET_SIZE - ts_buff_pos + 1]);
+				DPRINTK("! error 0x%x !\n",
+					data[TS_PACKET_SIZE - ts_buff_pos]);
 
 				memset(ts_buff, 0, ts_buff_size);
 				ts_buff_pos = 0;
@@ -264,10 +271,11 @@ static int __add_ts_data(unsigned char *data, unsigned long data_size)
 				&data[data_size-ts_buff_pos],
 				ts_buff_pos);
 		} else {
+			if (data_size == 0)
+				return 0;
 			if (data[0] != 0x47) {
-				DPRINTK("!! error 0x%x,0x%x!!\n",
-								data[0],
-								data[1]);
+				DPRINTK("!! error 0x%x!!\n",
+								data[0]);
 
 				memset(ts_buff, 0, ts_buff_size);
 				ts_buff_pos = 0;
@@ -336,7 +344,7 @@ __add_msc_data(unsigned char *data, unsigned long data_size, int sub_ch_id)
 	if (first_packet) {
 		int j;
 
-		for (j = 0; j < data_size-4; j++) {
+		for (j = 0; j + 4 < data_size; j++) {
 			if (data[j] == 0xFF && ((data[j+1]>>4) == 0xF)) {
 				mp2_len = __get_mp2_len(&data[j]);
 				DPRINTK("first sync mp2_len= %d\n", mp2_len);
@@ -385,9 +393,8 @@ __add_msc_data(unsigned char *data, unsigned long data_size, int sub_ch_id)
 
 					if (!(msc_buff[0] == 0xFF
 						&& ((msc_buff[1]>>4) == 0xF))) {
-						DPRINTK("!!error 0x%x,0x%x!!\n",
-							msc_buff[0],
-							msc_buff[1]);
+						DPRINTK("!!error 0x%x!!\n",
+							msc_buff[0]);
 						memset(msc_buff,
 							0,
 							MSC_BUF_SIZE);
