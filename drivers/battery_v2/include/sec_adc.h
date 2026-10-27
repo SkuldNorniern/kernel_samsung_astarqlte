@@ -28,5 +28,11 @@
 #define VENDOR_QCOM 2
 #define RETRY_CNT 3
 
+/* 4.19 has no qpnp-vadc result type; ADC reads are returned in this form */
+struct sec_adc_result {
+	int adc_code;
+	s64 physical;
+};
+
 #endif /* __SEC_ADC_H */
 
