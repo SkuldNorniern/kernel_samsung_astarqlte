@@ -944,8 +944,8 @@ static int s2mm005_usbpd_probe(struct i2c_client *i2c,
 			if(s2mm005_flash_fw(usbpd_data,chip_swver.boot) < 0) {
 				pr_err("%s: s2mm005_flash_fw 1st fail, try again \n", __func__);
 				if(s2mm005_flash_fw(usbpd_data,chip_swver.boot) < 0) {
-					pr_err("%s: s2mm005_flash_fw 2st fail, panic \n", __func__);
-					panic("infinite write fail!\n");
+					/* flash_fw already left flash mode and reset the chip */
+					pr_err("%s: s2mm005_flash_fw 2nd fail, keep current fw\n", __func__);
 				}
 			}
 		}

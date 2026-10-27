@@ -352,8 +352,13 @@ int s2mm005_flash(struct s2mm005_data *usbpd_data, unsigned int input)
 				s2mm005_reset(usbpd_data);
 				msleep(3000);
 				s2mm005_flash_ready(usbpd_data);
-			} else if (retry == 20) {
-				panic("Flash mode change fail!\n");
+			} else if (retry >= 20) {
+				dev_err(&i2c->dev, "%s: flash mode change failed, resetting chip\n", __func__);
+				/* reset is the only way out of flash mode here */
+				s2mm005_reset(usbpd_data);
+				msleep(3000);
+				ret = -EIO;
+				break;
 			}
 		} while (val != FLASH_MODE_FLASH);
 		break;
@@ -540,7 +545,12 @@ int s2mm005_flash_fw(struct s2mm005_data *usbpd_data, unsigned int input)
 	case FLASH_WRITE6:
 	case FLASH_WRITE7:
 	case FLASH_WRITE: {
-		s2mm005_flash(usbpd_data, FLASH_MODE_ENTER);
+		ret = s2mm005_flash(usbpd_data, FLASH_MODE_ENTER);
+		if (ret < 0) {
+			pr_err("%s: enter flash mode failed, not writing\n", __func__);
+			s2mm005_reset(usbpd_data);
+			break;
+		}
 		usleep_range(10 * 1000, 10 * 1000);
 		s2mm005_flash(usbpd_data, FLASH_ERASE);
 		msleep(200);
@@ -562,7 +572,15 @@ int s2mm005_flash_fw(struct s2mm005_data *usbpd_data, unsigned int input)
 		disable_irq(usbpd_data->irq);
 		s2mm005_manual_LPM(usbpd_data, 0x7); // LP Off
 		msleep(3000);
-		s2mm005_flash(usbpd_data, FLASH_MODE_ENTER);
+		ret = s2mm005_flash(usbpd_data, FLASH_MODE_ENTER);
+		if (ret < 0) {
+			pr_err("%s: enter flash mode failed, not writing\n", __func__);
+			s2mm005_reset(usbpd_data);
+			usleep_range(10 * 1000, 10 * 1000);
+			s2mm005_manual_LPM(usbpd_data, 0x6); // LP On
+			enable_irq(usbpd_data->irq);
+			break;
+		}
 		usleep_range(10 * 1000, 10 * 1000);
 		s2mm005_flash(usbpd_data, FLASH_ERASE);
 		msleep(200);
