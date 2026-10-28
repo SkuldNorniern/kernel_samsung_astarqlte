@@ -4,6 +4,9 @@
 #
 
 ccflags-$(CONFIG_SPI_DEBUG) := -DDEBUG
+# Stock sets this globally from the top Makefile (KBUILD_FP_SENSOR_CFLAGS)
+# for non-factory builds. spi_qsd needs it to skip the TZ-owned fp bus.
+ccflags-$(CONFIG_SENSORS_FINGERPRINT) += -DENABLE_SENSORS_FPRINT_SECURE
 
 # small core, mostly translating board-specific
 # config declarations into driver model code

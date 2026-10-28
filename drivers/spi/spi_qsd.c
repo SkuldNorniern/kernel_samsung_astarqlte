@@ -53,7 +53,7 @@
  * spi core calls spi_setup() when it registers the etspi child, so setup must
  * not program QUP3 registers on this bus.
  */
-#if defined(CONFIG_SENSORS_FINGERPRINT)
+#if defined(ENABLE_SENSORS_FPRINT_SECURE)
 static inline bool msm_spi_fp_tz_bus(int bus_num)
 {
 	return bus_num == CONFIG_SENSORS_FP_SPI_NUMBER;
