@@ -2736,7 +2736,8 @@ skip_dma_resources:
 		dev_err(&pdev->dev, "failed to create dev. attrs : %d\n", rc);
 		goto err_attrs;
 	}
-	spi_debugfs_init(dd);
+	if (!msm_spi_fp_tz_bus(pdev->id))
+		spi_debugfs_init(dd);
 	dd->ipc_logs = ipc_log_context_create(4, dev_name(dd->dev), 0);
 	if (!dd->ipc_logs)
 		dev_info(&pdev->dev, "%s: failed to create ipc log cntxt\n",
