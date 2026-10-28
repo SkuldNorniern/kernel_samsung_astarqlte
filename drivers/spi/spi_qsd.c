@@ -2551,6 +2551,38 @@ err_clk_get:
 	return rc;
 }
 
+#ifdef ENABLE_SENSORS_FPRINT_SECURE
+/*
+ * Stock fp_spi_clock_get(): look up core/iface clocks for the TZ-owned fp
+ * bus without enabling them.
+ */
+static int fp_spi_clock_get(struct platform_device *pdev)
+{
+	struct spi_master *master = platform_get_drvdata(pdev);
+	struct msm_spi *dd = spi_master_get_devdata(master);
+	int rc = 0;
+
+	dd->clk = clk_get(&pdev->dev, "core_clk");
+	if (IS_ERR(dd->clk)) {
+		rc = PTR_ERR(dd->clk);
+		dev_err(&pdev->dev, "%s: unable to get core_clk, rc = %d\n",
+			__func__, rc);
+		return rc;
+	}
+
+	dd->pclk = clk_get(&pdev->dev, "iface_clk");
+	if (IS_ERR(dd->pclk)) {
+		rc = PTR_ERR(dd->pclk);
+		dev_err(&pdev->dev, "%s: unable to get iface_clk, rc = %d\n",
+			__func__, rc);
+		return rc;
+	}
+
+	pr_info("%s sucess\n", __func__);
+	return 0;
+}
+#endif
+
 static int msm_spi_probe(struct platform_device *pdev)
 {
 	struct spi_master      *master;
@@ -2640,6 +2672,15 @@ static int msm_spi_probe(struct platform_device *pdev)
 				goto skip_dma_resources;
 			}
 		}
+#ifdef ENABLE_SENSORS_FPRINT_SECURE
+		if (msm_spi_fp_tz_bus(pdev->id)) {
+			fp_spi_clock_get(pdev);
+			pdata->use_bam = false;
+			pr_info("%s: disable bam for BLSP tzspi, spi num(%d)\n",
+					__func__, pdev->id);
+			goto skip_dma_resources;
+		}
+#endif
 		if (!dd->pdata->use_bam)
 			goto skip_dma_resources;
 
