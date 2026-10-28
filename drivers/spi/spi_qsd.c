@@ -2473,7 +2473,8 @@ static int init_resources(struct platform_device *pdev)
 
 	pclk_enabled = 1;
 
-	if (dd->pdata && dd->pdata->ver_reg_exists) {
+	if (dd->pdata && dd->pdata->ver_reg_exists &&
+	    !msm_spi_fp_tz_bus(pdev->id)) {
 		enum msm_spi_qup_version ver =
 					msm_spi_get_qup_hw_ver(&pdev->dev, dd);
 		if (dd->qup_ver != ver)
