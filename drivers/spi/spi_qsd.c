@@ -2510,10 +2510,12 @@ static int init_resources(struct platform_device *pdev)
 	 */
 	msm_spi_enable_error_flags(dd);
 
-	writel_relaxed(SPI_IO_C_NO_TRI_STATE, dd->base + SPI_IO_CONTROL);
-	rc = msm_spi_set_state(dd, SPI_OP_STATE_RESET);
-	if (rc)
-		goto err_spi_state;
+	if (!msm_spi_fp_tz_bus(pdev->id)) {
+		writel_relaxed(SPI_IO_C_NO_TRI_STATE, dd->base + SPI_IO_CONTROL);
+		rc = msm_spi_set_state(dd, SPI_OP_STATE_RESET);
+		if (rc)
+			goto err_spi_state;
+	}
 
 	clk_disable_unprepare(dd->clk);
 	clk_disable_unprepare(dd->pclk);
