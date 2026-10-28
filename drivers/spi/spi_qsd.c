@@ -54,10 +54,9 @@
  * not program QUP3 registers on this bus.
  */
 #if defined(CONFIG_SENSORS_FINGERPRINT)
-#define MSM_SPI_FP_TZ_BUS	3
 static inline bool msm_spi_fp_tz_bus(int bus_num)
 {
-	return bus_num == MSM_SPI_FP_TZ_BUS;
+	return bus_num == CONFIG_SENSORS_FP_SPI_NUMBER;
 }
 #else
 static inline bool msm_spi_fp_tz_bus(int bus_num)

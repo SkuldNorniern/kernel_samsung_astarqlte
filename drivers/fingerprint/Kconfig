@@ -27,4 +27,13 @@ config SENSORS_ET5XX_ALLOW_NVM_WRITE
 	  refused with -EPERM unless this is set. Off by default. Reads and
 	  register access are not affected.
 
+config SENSORS_FP_SPI_NUMBER
+	depends on SENSORS_FINGERPRINT
+	int "Fingerprint spi bus number"
+	default 3
+	help
+	  spi bus the fingerprint sensor sits on. The TZ owns this QUP and its
+	  BAM pipes, so spi_qsd leaves that bus alone (no setup, no clock or
+	  register access, no BAM) when ENABLE_SENSORS_FPRINT_SECURE is set.
+
 endif # SENSORS_FINGERPRINT
