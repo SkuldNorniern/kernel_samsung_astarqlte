@@ -1726,12 +1726,14 @@ static int sm5705_charger_probe(struct platform_device *pdev)
 	charger->psy_chg = power_supply_register(&pdev->dev, &sm5705_charger_power_supply_desc, &charger_cfg);
 	if (IS_ERR(charger->psy_chg)) {
 		dev_err(&pdev->dev, "%s: fail to Register psy_chg\n", __func__);
+		ret = PTR_ERR(charger->psy_chg);
 		goto err_power_supply_register;
 	}
 
 	charger->psy_otg = power_supply_register(&pdev->dev, &otg_power_supply_desc, &charger_cfg);
 	if (IS_ERR(charger->psy_otg)) {
 		dev_err(&pdev->dev, "%s: fail to Register psy_otg\n", __func__);
+		ret = PTR_ERR(charger->psy_otg);
 		goto err_power_supply_register_chg;
 	}
 	/* Operation Mode Initialize */
